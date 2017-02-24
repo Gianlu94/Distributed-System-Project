@@ -22,6 +22,7 @@ import com.typesafe.config.Config;
 public class NodeApp {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
 	static private int myId; // ID of the local node
+	static int N, R, W, T; // parameters replication number, read quorum, write quorum and timeout
 
     public static class Join implements Serializable {
 		int id;
@@ -98,5 +99,12 @@ public class NodeApp {
 				Props.create(Node.class),	// actor class 
 				"node"						// actor name
 				);
+		
+		// Load parameters from parameters configuration file
+		Config parameters = ConfigFactory.load("parameters");
+		N = parameters.getInt("N.value");
+		R = parameters.getInt("R.value");
+		W = parameters.getInt("W.value");
+		T = parameters.getInt("T.value");
     }
 }
