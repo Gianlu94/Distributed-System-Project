@@ -20,8 +20,6 @@ public class Client {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
 	static private int myId; // ID of the local node
 
-	static private Scanner input; //to acquire keyboard input stream
-	static private String inputCommand;
 
 
 	
@@ -35,13 +33,61 @@ public class Client {
     }
 
     /*
-        Terminal to acquire client commands
+        Terminal to receive client commands
      */
     private static void terminal(){
+
+	    Scanner input; //to receive keyboard input stream
+	    String inputCommand;
+	    String [] tokensInput; //split command in tokens
+	    Integer tokensNumber;
+
 	    input = new Scanner(System.in);
 	    while (true){
-		    System.out.print(">>");
+		    System.out.print(">> ");
 		    inputCommand = input.nextLine();
+		    tokensInput = inputCommand.split(" ");
+			tokensNumber = tokensInput.length;
+
+		    switch (tokensInput[0].toLowerCase()){
+			    case "e":
+			    case "exit":
+			    	System.exit(0);
+			    case "java":
+				    if ((tokensInput.length < 5) || (tokensNumber > 7)){
+					    System.out.println("ERROR: Number of parameters wrong");
+				    }
+				    else if(tokensInput[1].toLowerCase().equals("client")){
+
+					    switch(tokensInput[4].toLowerCase()){
+						    case "read":
+							    System.out.println("NOT IMPLEMENTED YET");
+						    	break;
+						    case "write":
+							    System.out.println("NOT IMPLEMENTED YET");
+						    	break;
+						    case "leave":
+							    System.out.println("NOT IMPLEMENTED YET");
+						    	break;
+						    default:
+						    	System.out.println("ERROR: command unknown");
+							    break;
+
+					    }
+
+				    }
+				    else{
+					    System.out.println("ERROR: command unknown");
+				    }
+				    break;
+			    default:
+			    	System.out.println("ERROR: No commands or command unknown");
+				    break;
+
+
+		    }
+
+
 	    }
     }
 	
