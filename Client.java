@@ -1,10 +1,6 @@
 import java.io.Serializable;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
 import java.net.*;
 import java.io.IOException;
 
@@ -24,6 +20,10 @@ public class Client {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
 	static private int myId; // ID of the local node
 
+	static private Scanner input; //to acquire keyboard input stream
+	static private String inputCommand;
+
+
 	
     public static class Node extends UntypedActor {
 		public void preStart() {
@@ -32,6 +32,17 @@ public class Client {
         public void onReceive(Object message) {
 			
 		}
+    }
+
+    /*
+        Terminal to acquire client commands
+     */
+    private static void terminal(){
+	    input = new Scanner(System.in);
+	    while (true){
+		    System.out.print(">>");
+		    inputCommand = input.nextLine();
+	    }
     }
 	
 	private static boolean ping (String address, String port, int timeout){
@@ -55,9 +66,15 @@ public class Client {
 		}
 		return online;
 	}
-	
+
+
+
     public static void main(String[] args) {
-		
+	    Config config = ConfigFactory.load("client");
+	    final ActorSystem system;
+	    final ActorRef clientActor;
+
+	    /*
 		if (!(args.length >= 3 && args.length <= 5)) {
 			System.out.println("Wrong number of arguments: [remote_ip remote_port]");
 			return;
@@ -70,6 +87,18 @@ public class Client {
 			System.out.println("Node with address: " + ip + ":" + port + " not reachable");
 		} else {			
 		}
+		*/
+
+	    system = ActorSystem.create("client_system", config);
+
+	    clientActor = system.actorOf(Props.create(Node.class),"client");
+
+	    terminal();
+
+
+
+
+
 		
     }
 }
