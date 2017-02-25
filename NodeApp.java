@@ -41,6 +41,9 @@ public class NodeApp {
 		}
 	}
 
+	/*
+		This is the class that identify an item
+	 */
 	public static class Item implements Serializable {
 		private Integer key;
 		private String value;
@@ -53,6 +56,7 @@ public class NodeApp {
 		}
 	}
 
+
 	public static class ItemsList implements Serializable{
 		Map<Integer, Item> items;
 
@@ -63,6 +67,7 @@ public class NodeApp {
 
 	/*
 		This method is responsible to load local storage of the node
+		TODO: replace e.printStackTrace with something else (e.g. Log.e)
 	 */
 	private static void loadItems(Map<Integer,Item> items){
 		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
@@ -93,13 +98,16 @@ public class NodeApp {
 			try {
 				item = buffer.readLine();
 				while (item!= null){
-					tokensItem = item.split("\\s+");
-					System.out.println(tokensItem.length);
+					tokensItem = item.split("\\s+"); //split string according space
 
-					keyItem = Integer.parseInt(tokensItem[0]);
-					items.put(itemIdentifier,new Item(keyItem, tokensItem[1],
+					//put the item in items hashmap
+					items.put(itemIdentifier,new Item(Integer.parseInt(tokensItem[0]),
+														tokensItem[1],
 														Integer.parseInt(tokensItem[2])));
+					//increment local id (hashMap)
 					itemIdentifier++;
+
+					//read next item in the file
 					item = buffer.readLine();
 
 
@@ -132,10 +140,6 @@ public class NodeApp {
 			}
 			nodes.put(myId, getSelf());
 			loadItems(items);
-
-			for (int i=0; i< items.size(); i++){
-
-			}
 
 		}
 
