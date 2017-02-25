@@ -1,4 +1,4 @@
-import java.io.Serializable;
+import java.io.*;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ import akka.actor.UntypedActor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.Cancellable;
+import scala.collection.generic.BitOperations;
 import scala.collection.mutable.StringBuilder;
 import scala.concurrent.duration.Duration;
 import com.typesafe.config.ConfigFactory;
@@ -40,7 +41,7 @@ public class NodeApp {
 		}
 	}
 
-	public class Item implements Serializable {
+	public static class Item implements Serializable {
 		private Integer key;
 		private String value;
 		private Integer version;
@@ -60,7 +61,62 @@ public class NodeApp {
 		}
 	}
 
-	private static void loadItems(){
+	/*
+		This method is responsible to load local storage of the node
+	 */
+	private static void loadItems(Map<Integer,Item> items){
+		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
+		File localStorage = new File(storagePath);
+		FileReader reader = null;
+		BufferedReader buffer;
+		String item;
+		String tokensItem[]; //when reading an item from the file you get a string
+		Integer itemIdentifier = 0; //Identifier (key) in the hashmap
+
+		Integer keyItem;
+
+		if (!localStorage.exists()){ //check if file exists
+			try {
+				localStorage.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		else{
+			//start reading operation
+			try {
+				reader = new FileReader(storagePath);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			buffer = new BufferedReader(reader);
+			try {
+				item = buffer.readLine();
+				while (item!= null){
+					tokensItem = item.split("\\s+");
+					System.out.println(tokensItem.length);
+
+					keyItem = Integer.parseInt(tokensItem[0]);
+					items.put(itemIdentifier,new Item(keyItem, tokensItem[1],
+														Integer.parseInt(tokensItem[2])));
+					itemIdentifier++;
+					item = buffer.readLine();
+
+
+				}
+
+				/*for (int i=0; i < items.size(); i++){
+					System.out.println("KEY = "+items.get(i).key+" VALUE = "+items.get(i).value+
+							" VERSION = " +items.get(i).version);
+				}
+				*/
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+
+		}
 
 	}
 	
@@ -68,12 +124,19 @@ public class NodeApp {
 		
 		// The table of all nodes in the system id->ref
 		private Map<Integer, ActorRef> nodes = new HashMap<>();
+	    private Map<Integer, Item> items = new HashMap<>();
 
 		public void preStart() {
 			if (remotePath != null) {
     			getContext().actorSelection(remotePath).tell(new RequestNodelist(), getSelf());
 			}
 			nodes.put(myId, getSelf());
+			loadItems(items);
+
+			for (int i=0; i< items.size(); i++){
+
+			}
+
 		}
 
         public void onReceive(Object message) {
