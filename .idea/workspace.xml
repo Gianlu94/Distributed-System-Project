@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6edc0da2-f5c5-41a7-81cd-93b3c3d42109" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Client$Node.class" afterPath="$PROJECT_DIR$/Client$Node.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Client.class" afterPath="$PROJECT_DIR$/Client.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Client.java" afterPath="$PROJECT_DIR$/Client.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/client.conf" afterPath="$PROJECT_DIR$/client.conf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp.java" afterPath="$PROJECT_DIR$/NodeApp.java" />
     </list>
     <ignored path="Distributed-System-Project.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,31 +34,40 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NodeApp.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="NodeApp.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/NodeApp.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="385">
-              <caret line="105" column="8" selection-start-line="105" selection-start-column="8" selection-end-line="105" selection-end-column="8" />
+            <state relative-caret-position="214">
+              <caret line="63" column="8" selection-start-line="63" selection-start-column="8" selection-end-line="63" selection-end-column="8" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#807#808#0" expanded="true" />
-                <element signature="e#828#829#0" expanded="true" />
+                <element signature="e#854#855#0" expanded="true" />
+                <element signature="e#875#876#0" expanded="true" />
+                <element signature="e#1567#1568#0" expanded="true" />
+                <element signature="e#1594#1595#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Client.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Client.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Client.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-222">
-              <caret line="57" column="62" selection-start-line="57" selection-start-column="62" selection-end-line="57" selection-end-column="62" />
+            <state relative-caret-position="1638">
+              <caret line="107" column="31" selection-start-line="107" selection-start-column="31" selection-end-line="107" selection-end-column="31" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -75,8 +81,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/1/NodeApp.java" />
-        <option value="$PROJECT_DIR$/NodeApp.java" />
         <option value="$PROJECT_DIR$/Client.java" />
+        <option value="$PROJECT_DIR$/Item.java" />
+        <option value="$PROJECT_DIR$/NodeApp.java" />
       </list>
     </option>
   </component>
@@ -594,12 +601,12 @@
       <updated>1487783784871</updated>
       <workItem from="1487783787133" duration="2678000" />
       <workItem from="1487836056950" duration="7764000" />
-      <workItem from="1488030504474" duration="7040000" />
+      <workItem from="1488030504474" duration="10316000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17482000" />
+    <option name="totallyTimeSpent" value="20758000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -674,8 +681,10 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#807#808#0" expanded="true" />
-            <element signature="e#828#829#0" expanded="true" />
+            <element signature="e#854#855#0" expanded="true" />
+            <element signature="e#875#876#0" expanded="true" />
+            <element signature="e#1567#1568#0" expanded="true" />
+            <element signature="e#1594#1595#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -699,23 +708,33 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/1/NodeApp.java" />
     <entry file="file://$PROJECT_DIR$/2/NodeApp.java" />
-    <entry file="file://$PROJECT_DIR$/NodeApp.java">
+    <entry file="file://$PROJECT_DIR$/Client.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="385">
-          <caret line="105" column="8" selection-start-line="105" selection-start-column="8" selection-end-line="105" selection-end-column="8" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#807#808#0" expanded="true" />
-            <element signature="e#828#829#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="1638">
+          <caret line="107" column="31" selection-start-line="107" selection-start-column="31" selection-end-line="107" selection-end-column="31" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Client.java">
+    <entry file="file://$PROJECT_DIR$/Item.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-222">
-          <caret line="57" column="62" selection-start-line="57" selection-start-column="62" selection-end-line="57" selection-end-column="62" />
+        <state relative-caret-position="90">
+          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="15" selection-end-column="1" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NodeApp.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="214">
+          <caret line="63" column="8" selection-start-line="63" selection-start-column="8" selection-end-line="63" selection-end-column="8" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#854#855#0" expanded="true" />
+            <element signature="e#875#876#0" expanded="true" />
+            <element signature="e#1567#1568#0" expanded="true" />
+            <element signature="e#1594#1595#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

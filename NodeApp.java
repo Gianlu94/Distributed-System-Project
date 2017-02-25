@@ -15,6 +15,7 @@ import akka.actor.UntypedActor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.Cancellable;
+import scala.collection.mutable.StringBuilder;
 import scala.concurrent.duration.Duration;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.Config;
@@ -31,11 +32,36 @@ public class NodeApp {
 		}
 	}
     public static class RequestNodelist implements Serializable {}
+
     public static class Nodelist implements Serializable {
 		Map<Integer, ActorRef> nodes;
 		public Nodelist(Map<Integer, ActorRef> nodes) {
 			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes)); 
 		}
+	}
+
+	public class Item implements Serializable {
+		private Integer key;
+		private String value;
+		private Integer version;
+
+		public Item(Integer key, String value, Integer version ){
+			this.key = key;
+			this.value = value;
+			this.version = version;
+		}
+	}
+
+	public static class ItemsList implements Serializable{
+		Map<Integer, Item> items;
+
+		public ItemsList(Map<Integer,Item> items){
+			this.items = items;
+		}
+	}
+
+	private static void loadItems(){
+
 	}
 	
     public static class Node extends UntypedActor {
@@ -99,7 +125,7 @@ public class NodeApp {
 				Props.create(Node.class),	// actor class 
 				"node"						// actor name
 				);
-		
+
 		// Load parameters from parameters configuration file
 		Config parameters = ConfigFactory.load("parameters");
 		N = parameters.getInt("N.value");
