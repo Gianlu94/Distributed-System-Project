@@ -1,13 +1,6 @@
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
-
-
-
 
 
 import akka.actor.ActorRef;
@@ -62,6 +55,49 @@ public class NodeApp {
 
 		public ItemsList(Map<Integer,Item> items){
 			this.items = items;
+		}
+	}
+
+	/*
+	  Terminal to receive node commands
+   */
+	private static void terminal(){
+		Scanner input; //to receive keyboard input stream
+		String inputCommand;
+		String [] tokensInput; //split command in tokens
+		Integer tokensNumber;
+
+
+		input = new Scanner(System.in);
+		while (true) {
+			System.out.print(">> ");
+			inputCommand = input.nextLine();
+			tokensInput = inputCommand.split(" ");
+
+			if (tokensInput.length != 5){
+				System.err.println("ERROR: Wrong number of parameters");
+			}
+			else{
+				if (tokensInput[0].toLowerCase().equals("e")){
+					System.exit(0); // for us remember to remove it
+				}
+				if ((tokensInput[0].toLowerCase().equals("java"))&&
+				(tokensInput[1].toLowerCase().equals("node"))){
+
+					switch (tokensInput[2].toLowerCase()){
+						case "join":
+							System.out.println("ERROR: Not implemented yet");
+							break;
+						case "recover":
+							System.out.println("ERROR: Not implemented yet");
+							break;
+						default:
+							System.err.println("ERROR: unknown command");
+							break;
+					}
+
+				}
+			}
 		}
 	}
 
@@ -199,5 +235,9 @@ public class NodeApp {
 		R = parameters.getInt("R.value");
 		W = parameters.getInt("W.value");
 		T = parameters.getInt("T.value");
+
+	    terminal();
+
+	    System.exit(0);
     }
 }
