@@ -181,6 +181,22 @@ public class NodeApp {
 
 	}
 
+	//naive method maybe we can think something better
+	public static ActorRef identifyNextNode(Map <Integer, ActorRef> nodes){
+		int margin = 100000; //TODO:Replace it
+		ActorRef nodeToContact = null ;
+		for (int key:nodes.keySet()){
+			if(key > myId){
+				if (key - myId < margin){
+					margin = key - myId;
+					nodeToContact = nodes.get(key);
+				}
+			}
+		}
+		return nodeToContact;
+	}
+
+
 	public static class Join implements Serializable {
 		int id;
 		public Join(int id) {
@@ -216,9 +232,10 @@ public class NodeApp {
 				if(typeOfRequest == 'j') {
 					getContext().setReceiveTimeout(Duration.Undefined());
 					nodes.putAll(((Nodelist) message).nodes);
-					for (ActorRef n : nodes.values()) {
+					/*for (ActorRef n : nodes.values()) {
 						n.tell(new Join(myId), getSelf());
 					}
+					*/
 				}
 			}
 			else if (message instanceof Join) {
