@@ -18,12 +18,20 @@ public class NodeApp {
 
 	public static class Nodelist implements Serializable {
 		Map<Integer, ActorRef> nodes;
-		public Nodelist(Map<Integer, ActorRef> nodes) {
+		char typeOfRequest;
+		public Nodelist(Map<Integer, ActorRef> nodes, char typeOfRequest) {
 			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes));
+			this.typeOfRequest = typeOfRequest;
 		}
 	}
 
-    public static class RequestNodelist implements Serializable {}
+    public static class RequestNodelist implements Serializable {
+	    char typeOfRequest;
+
+	    public RequestNodelist (char typeOfRequest){
+		    this.typeOfRequest = typeOfRequest;
+	    }
+    }
 
 	//send this msg in order to require to our remoteActor to do start a Join
 	public static class RequestJoin implements Serializable {}
@@ -185,10 +193,11 @@ public class NodeApp {
 		// The table of all nodes in the system id->ref
 		private Map<Integer, ActorRef> nodes = new HashMap<>();
 	    private Map<Integer, Item> items = new HashMap<>();
+	    private char typeOfRequest;
 
 		public void preStart() {
 			if (remotePath != null) {
-    			getContext().actorSelection(remotePath).tell(new RequestNodelist(), getSelf());
+    			getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
 			}
 			nodes.put(myId, getSelf());
 			loadItems(items);
@@ -197,13 +206,19 @@ public class NodeApp {
 
         public void onReceive(Object message) {
 			if (message instanceof RequestNodelist) {
-				getSender().tell(new Nodelist(nodes), getSelf());
+				typeOfRequest = ((RequestNodelist) message).typeOfRequest;
+				if(typeOfRequest == 'j'){
+					getSender().tell(new Nodelist(nodes,typeOfRequest), getSelf());
+				}
 			}
 			else if (message instanceof Nodelist) {
-				getContext().setReceiveTimeout(Duration.Undefined());
-				nodes.putAll(((Nodelist)message).nodes);
-				for (ActorRef n: nodes.values()) {
-					n.tell(new Join(myId), getSelf());
+				typeOfRequest = ((Nodelist) message).typeOfRequest;
+				if(typeOfRequest == 'j') {
+					getContext().setReceiveTimeout(Duration.Undefined());
+					nodes.putAll(((Nodelist) message).nodes);
+					for (ActorRef n : nodes.values()) {
+						n.tell(new Join(myId), getSelf());
+					}
 				}
 			}
 			else if (message instanceof Join) {
@@ -212,7 +227,7 @@ public class NodeApp {
 				nodes.put(id, getSender());
 			}
 			else if (message instanceof RequestJoin){
-				getContext().actorSelection(remotePath).tell(new RequestNodelist(), getSelf());
+				getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
 				getContext().setReceiveTimeout(Duration.create(T+"second"));
 			}
 			else if (message instanceof ReceiveTimeout){
