@@ -192,6 +192,7 @@ public class NodeApp {
         public void onReceive(Object message) {
 			if (message instanceof RequestNodelist) {
 				getSender().tell(new Nodelist(nodes), getSelf());
+				System.out.println("Request received");
 			}
 			else if (message instanceof Nodelist) {
 				nodes.putAll(((Nodelist)message).nodes);
@@ -203,6 +204,16 @@ public class NodeApp {
 				int id = ((Join)message).id;
 				System.out.println("Node " + id + " joined");
 				nodes.put(id, getSender());
+			}
+			else if (message instanceof RequestJoin){
+				getContext().actorSelection(remotePath).tell(new RequestNodelist(), getSelf());
+				getContext().setReceiveTimeout(Duration.create(T+"second"));
+			}
+			else if (message instanceof ReceiveTimeout){
+				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
+				System.out.print(">> ");
+				getContext().setReceiveTimeout(Duration.Undefined());
+
 			}
 			else
             	unhandled(message);		// this actor does not handle any incoming messages
