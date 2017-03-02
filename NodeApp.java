@@ -3,11 +3,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
-import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.Cancellable;
+import akka.actor.*;
 import scala.collection.generic.BitOperations;
 import scala.collection.mutable.StringBuilder;
 import scala.concurrent.duration.Duration;
@@ -18,21 +14,19 @@ public class NodeApp {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
 	static private int myId; // ID of the local node
 	static int N, R, W, T; // parameters replication number, read quorum, write quorum and timeout
+	static private ActorRef receiver;
 
-    public static class Join implements Serializable {
-		int id;
-		public Join(int id) {
-			this.id = id;
-		}
-	}
-    public static class RequestNodelist implements Serializable {}
-
-    public static class Nodelist implements Serializable {
+	public static class Nodelist implements Serializable {
 		Map<Integer, ActorRef> nodes;
 		public Nodelist(Map<Integer, ActorRef> nodes) {
-			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes)); 
+			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes));
 		}
 	}
+
+    public static class RequestNodelist implements Serializable {}
+
+	//send this msg in order to require to our remoteActor to do start a Join
+	public static class RequestJoin implements Serializable {}
 
 	/*
 		This is the class that identify an item
@@ -86,7 +80,8 @@ public class NodeApp {
 
 					switch (tokensInput[2].toLowerCase()){
 						case "join":
-							System.out.println("ERROR: Not implemented yet");
+							//System.out.println("ERROR: Not implemented yet");
+							doJoin(tokensInput[3].toLowerCase(),tokensInput[4].toLowerCase());
 							break;
 						case "recover":
 							System.out.println("ERROR: Not implemented yet");
@@ -163,6 +158,21 @@ public class NodeApp {
 		}
 
 	}
+
+	public static void doJoin (String ip, String port){
+
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		receiver.tell(new RequestJoin()  ,null);
+
+
+	}
+
+	public static class Join implements Serializable {
+		int id;
+		public Join(int id) {
+			this.id = id;
+		}
+	}
 	
     public static class Node extends UntypedActor {
 		
@@ -198,7 +208,7 @@ public class NodeApp {
             	unhandled(message);		// this actor does not handle any incoming messages
         }
     }
-	
+
     public static void main(String[] args) {
 		
 		if (args.length != 0 && args.length !=2 ) {
@@ -224,7 +234,7 @@ public class NodeApp {
 		final ActorSystem system = ActorSystem.create("mysystem", config);
 
 		// Create a single node actor
-		final ActorRef receiver = system.actorOf(
+		receiver = system.actorOf(
 				Props.create(Node.class),	// actor class 
 				"node"						// actor name
 				);
