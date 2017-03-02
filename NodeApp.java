@@ -1,4 +1,8 @@
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +40,9 @@ public class NodeApp {
 	//send this msg in order to require to our remoteActor to do start a Join
 	public static class RequestJoin implements Serializable {}
 
+	//send this msg in order to ask for the list of items one actor is resonsible for
+	public static class RequestItems implements Serializable {}
+
 	/*
 		This is the class that identify an item
 	 */
@@ -48,6 +55,11 @@ public class NodeApp {
 			this.key = key;
 			this.value = value;
 			this.version = version;
+		}
+		
+		public String toString(){
+			String res = key + " " + value + " " + version;
+			return res;
 		}
 	}
 
@@ -82,13 +94,13 @@ public class NodeApp {
 			inputCommand = input.nextLine();
 			tokensInput = inputCommand.split(" ");
 
+			if (tokensInput[0].toLowerCase().equals("e")){
+				System.exit(0); // for us remember to remove it
+			}
 			if (tokensInput.length != 5){
 				System.err.println("ERROR: Wrong number of parameters");
 			}
 			else{
-				if (tokensInput[0].toLowerCase().equals("e")){
-					System.exit(0); // for us remember to remove it
-				}
 				if ((tokensInput[0].toLowerCase().equals("java"))&&
 				(tokensInput[1].toLowerCase().equals("node"))){
 
@@ -183,6 +195,20 @@ public class NodeApp {
 
 	//naive method maybe we can think something better --works on the ring
 	public static ActorRef identifyNextNode(Map <Integer, ActorRef> nodes){
+		ArrayList<Integer> keyArray = new ArrayList<Integer>(nodes.keySet());
+		Collections.sort(keyArray);
+		
+		int nextNodeKey;
+		int myIndex = keyArray.indexOf(myId);
+		
+		if(myIndex!=-1){
+			nextNodeKey = keyArray.get((myIndex + 1) % keyArray.size());
+			return nodes.get(nextNodeKey);
+		}else{
+			return null; // "null" would mean that in "nodes" there is not this actor, but there always should be
+		}
+		
+		/*
 		int marginG = 10000; //TODO:Replace it
 		int marginL = 0;
 		ActorRef nodeToContactG = null ;
@@ -208,7 +234,7 @@ public class NodeApp {
 		}
 		else{
 			return nodeToContactL;
-		}
+		}*/
 	}
 
 
@@ -235,6 +261,31 @@ public class NodeApp {
 
 		}
 
+		// initialize storage file and add items
+		private void initializeStorageFile (Map<Integer, Item> items){
+			String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file			
+			
+			//String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
+// ** il file local storage deve essere chiamato "myid"mylocalStorage, oppure deve andare nella cartella "myid" e chiamarsi myLocalStorage? **
+			
+			List<String> lines = new ArrayList<String>();
+			for (Integer i : items.keySet()){
+				lines.add(items.get(i).toString());
+			}
+			Path file = Paths.get(storagePath);
+			
+			try{
+			Files.write(file, lines, Charset.forName("UTF-8"));
+			}catch (IOException e){
+				e.printStackTrace();
+			}
+		}
+		
+		private void initializeItemList(Map<Integer, Item> items){
+			initializeStorageFile(items);
+			this.items = items;
+		}
+		
         public void onReceive(Object message) {
 			if (message instanceof RequestNodelist) {
 				typeOfRequest = ((RequestNodelist) message).typeOfRequest;
@@ -247,8 +298,12 @@ public class NodeApp {
 				if(typeOfRequest == 'j') {
 					getContext().setReceiveTimeout(Duration.Undefined());
 					nodes.putAll(((Nodelist) message).nodes);
+					
+					ActorRef nextNode = identifyNextNode(nodes);
+					nextNode.tell(new RequestItems(), getSelf());
+					
 					/*for (ActorRef n : nodes.values()) {
-						n.tell(new Join(myId), getSelf());
+						n.tell(new Join(myId), getSelf()); // andrà fatto una volta recuperati gli item di cui sono responsabile
 					}
 					*/
 
@@ -262,6 +317,16 @@ public class NodeApp {
 			else if (message instanceof RequestJoin){
 				getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
 				getContext().setReceiveTimeout(Duration.create(T+"second"));
+			}
+			else if (message instanceof RequestItems){ // I have to send my items to the sender of the message
+				getSender().tell(new ItemsList(items), getSelf());
+			}
+
+			else if (message instanceof ItemsList){ // received items i'm responsible for. initialize items and announce my presence
+				initializeItemList(((ItemsList)message).items);
+				
+				//TODO: announce my presence to everyone...
+				
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
