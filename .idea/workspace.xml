@@ -2,16 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6edc0da2-f5c5-41a7-81cd-93b3c3d42109" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp$Item.class" afterPath="$PROJECT_DIR$/NodeApp$Item.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp$ItemsList.class" afterPath="$PROJECT_DIR$/NodeApp$ItemsList.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp$Join.class" afterPath="$PROJECT_DIR$/NodeApp$Join.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp$Node.class" afterPath="$PROJECT_DIR$/NodeApp$Node.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp$Nodelist.class" afterPath="$PROJECT_DIR$/NodeApp$Nodelist.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp$RequestNodelist.class" afterPath="$PROJECT_DIR$/NodeApp$RequestNodelist.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp.class" afterPath="$PROJECT_DIR$/NodeApp.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NodeApp.java" afterPath="$PROJECT_DIR$/NodeApp.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/parameters.conf" afterPath="$PROJECT_DIR$/parameters.conf" />
     </list>
     <ignored path="Distributed-System-Project.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -614,12 +605,12 @@
       <workItem from="1488270388904" duration="5237000" />
       <workItem from="1488439266272" duration="4086000" />
       <workItem from="1488443619722" duration="2221000" />
-      <workItem from="1488445868880" duration="1054000" />
+      <workItem from="1488445868880" duration="1303000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="43536000" />
+    <option name="totallyTimeSpent" value="43785000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
