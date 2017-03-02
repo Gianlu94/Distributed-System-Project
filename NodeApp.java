@@ -181,19 +181,34 @@ public class NodeApp {
 
 	}
 
-	//naive method maybe we can think something better
+	//naive method maybe we can think something better --works on the ring
 	public static ActorRef identifyNextNode(Map <Integer, ActorRef> nodes){
-		int margin = 100000; //TODO:Replace it
-		ActorRef nodeToContact = null ;
+		int marginG = 10000; //TODO:Replace it
+		int marginL = 0;
+		ActorRef nodeToContactG = null ;
+		ActorRef nodeToContactL = null ;
 		for (int key:nodes.keySet()){
 			if(key > myId){
-				if (key - myId < margin){
-					margin = key - myId;
-					nodeToContact = nodes.get(key);
+				if (key - myId < marginG){
+					marginG = key - myId;
+					nodeToContactG = nodes.get(key);
+				}
+			}
+			//if successor has a smaller Id
+			else{
+				if (myId - key > marginL) {
+					marginL = myId - key;
+					nodeToContactL = nodes.get(key);
 				}
 			}
 		}
-		return nodeToContact;
+		if ((marginG > 0)&&(marginL==0)){
+			return nodeToContactG; //Todo:if i have only one node and node performs request to itsselfe
+									//Todo: (NO SENSE) it should return null (MANAGE)
+		}
+		else{
+			return nodeToContactL;
+		}
 	}
 
 
@@ -236,6 +251,7 @@ public class NodeApp {
 						n.tell(new Join(myId), getSelf());
 					}
 					*/
+
 				}
 			}
 			else if (message instanceof Join) {
