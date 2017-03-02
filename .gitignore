@@ -1,10 +1,2 @@
-/Client$Node.class
-/Client.class
-/NodeApp$Item.class
-/NodeApp$ItemList.class
-/NodeApp$Join.class
-/NodeApp$Node.class
-/NodeApp$NodeList.class
-/NodeApp$RequestNodeList.class
-/NodeApp.class
+*.class
 *~

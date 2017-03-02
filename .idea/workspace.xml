@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6edc0da2-f5c5-41a7-81cd-93b3c3d42109" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Client$Node.class" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Client.class" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Distributed-System-Project.iws" />
@@ -99,7 +102,7 @@
     <treeState />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="65" />
+    <option name="x" value="1431" />
     <option name="y" value="-744" />
     <option name="width" value="1301" />
     <option name="height" value="744" />
@@ -605,12 +608,12 @@
       <workItem from="1488270388904" duration="5237000" />
       <workItem from="1488439266272" duration="4086000" />
       <workItem from="1488443619722" duration="2221000" />
-      <workItem from="1488445868880" duration="1303000" />
+      <workItem from="1488445868880" duration="1924000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="43785000" />
+    <option name="totallyTimeSpent" value="44406000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -622,7 +625,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="-744" width="1301" height="744" extended-state="6" />
+    <frame x="1431" y="-744" width="1301" height="744" extended-state="6" />
     <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
