@@ -52,9 +52,15 @@ public class NodeApp {
 		}
 	}
 
+
+	private static void goBackToTerminal(){
+		System.out.print(">> ");
+	}
+
+
 	/*
-	  Terminal to receive node commands
-   */
+		  Terminal to receive node commands
+	   */
 	private static void terminal(){
 		Scanner input; //to receive keyboard input stream
 		String inputCommand;
@@ -192,9 +198,9 @@ public class NodeApp {
         public void onReceive(Object message) {
 			if (message instanceof RequestNodelist) {
 				getSender().tell(new Nodelist(nodes), getSelf());
-				System.out.println("Request received");
 			}
 			else if (message instanceof Nodelist) {
+				getContext().setReceiveTimeout(Duration.Undefined());
 				nodes.putAll(((Nodelist)message).nodes);
 				for (ActorRef n: nodes.values()) {
 					n.tell(new Join(myId), getSelf());
@@ -210,9 +216,9 @@ public class NodeApp {
 				getContext().setReceiveTimeout(Duration.create(T+"second"));
 			}
 			else if (message instanceof ReceiveTimeout){
-				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
-				System.out.print(">> ");
 				getContext().setReceiveTimeout(Duration.Undefined());
+				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
+				goBackToTerminal();
 
 			}
 			else
