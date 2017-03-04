@@ -301,11 +301,7 @@ public class NodeApp {
 					
 					ActorRef nextNode = identifyNextNode(nodes);
 					nextNode.tell(new RequestItems(), getSelf());
-					
-					/*for (ActorRef n : nodes.values()) {
-						n.tell(new Join(myId), getSelf()); // andrà fatto una volta recuperati gli item di cui sono responsabile
-					}
-					*/
+
 
 				}
 			}
@@ -325,7 +321,11 @@ public class NodeApp {
 			else if (message instanceof ItemsList){ // received items i'm responsible for. initialize items and announce my presence
 				initializeItemList(((ItemsList)message).items);
 				
-				//TODO: announce my presence to everyone...
+				//announce to other nodes my presence
+				for (ActorRef n : nodes.values()) {
+						n.tell(new Join(myId), getSelf());
+				}
+
 				
 			}
 			else if (message instanceof ReceiveTimeout){
