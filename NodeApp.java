@@ -134,9 +134,7 @@ public class NodeApp {
 		BufferedReader buffer;
 		String item;
 		String tokensItem[]; //when reading an item from the file you get a string
-		Integer itemIdentifier = 0; //Identifier (key) in the hashmap
-
-		Integer keyItem;
+		Integer itemKey;
 
 		if (!localStorage.exists()){ //check if file exists
 			try {
@@ -158,12 +156,11 @@ public class NodeApp {
 				while (item!= null){
 					tokensItem = item.split("\\s+"); //split string according space
 
+					itemKey = Integer.parseInt(tokensItem[0]);
 					//put the item in items hashmap
-					items.put(itemIdentifier,new Item(Integer.parseInt(tokensItem[0]),
+					items.put(itemKey,new Item(itemKey,
 														tokensItem[1],
 														Integer.parseInt(tokensItem[2])));
-					//increment local id (hashMap)
-					itemIdentifier++;
 
 					//read next item in the file
 					item = buffer.readLine();
