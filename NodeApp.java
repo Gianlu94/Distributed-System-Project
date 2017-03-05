@@ -40,12 +40,13 @@ public class NodeApp {
 	//send this msg in order to require to our remoteActor to do start a Join
 	public static class RequestJoin implements Serializable {}
 
-	//send this msg in order to ask for the list of items one actor is resonsible for
+	//send this msg in order to ask for the list of items one actor is responsible for
 	public static class RequestItems implements Serializable {}
 
 	/*
 		This is the class that identify an item
 	 */
+
 	public static class Item implements Serializable {
 		private Integer key;
 		private String value;
@@ -237,6 +238,49 @@ public class NodeApp {
 		}*/
 	}
 
+	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
+	//TODO: test it
+	public static void itemsAfterJoin (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
+
+		int replicationN; //a temporary value for N
+		int keyNode;
+
+		ArrayList<Integer> keyNodes = new ArrayList<Integer>(nodes.keySet());
+		Collections.sort(keyNodes);
+
+		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
+
+
+		ArrayList<Integer> nodesCompetent = new ArrayList<Integer>();
+
+		for (Integer keyItem:keyItems){
+			replicationN = N;
+			//compare the keyItem with the list of keyNodes
+			for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
+				keyNode = keyNodes.get(i);
+				if (keyItem < keyNode){ // I find all the elements that have to contain that item
+					replicationN--;
+					nodesCompetent.add(keyNode);
+				}
+			}
+
+			//it means that the remaining elements that contains that item
+			//are located at the beginning of the ring
+			if (replicationN != 0){
+				for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
+					keyNode = keyNodes.get(i);
+					replicationN--;
+					nodesCompetent.add(keyNode);
+				}
+			}
+			//if among the nodeCompetent there is not the current node
+			//then delete that item from its list of items
+			if (!nodesCompetent.contains(myId)){
+				items.remove(keyItem);
+			}
+		}
+	}
+
 
 	public static class Join implements Serializable {
 		int id;
@@ -263,6 +307,7 @@ public class NodeApp {
 
 		// initialize storage file and add items
 		private void initializeStorageFile (Map<Integer, Item> items){
+
 			String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file			
 			
 			//String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
@@ -309,6 +354,9 @@ public class NodeApp {
 				int id = ((Join)message).id;
 				System.out.println("Node " + id + " joined");
 				nodes.put(id, getSender());
+				itemsAfterJoin(nodes,items);
+
+				//
 			}
 			else if (message instanceof RequestJoin){
 				getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
@@ -316,6 +364,7 @@ public class NodeApp {
 			}
 			else if (message instanceof RequestItems){ // I have to send my items to the sender of the message
 				getSender().tell(new ItemsList(items), getSelf());
+
 			}
 
 			else if (message instanceof ItemsList){ // received items i'm responsible for. initialize items and announce my presence
