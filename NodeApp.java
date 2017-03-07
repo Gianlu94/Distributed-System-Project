@@ -183,6 +183,31 @@ public class NodeApp {
 
 	}
 
+	// initialize storage file and add items
+	private static void initializeStorageFile (Map<Integer, Item> items){
+
+		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
+
+		//String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
+// ** il file local storage deve essere chiamato "myid"mylocalStorage, oppure deve andare nella cartella "myid" e chiamarsi myLocalStorage? **
+
+		List<String> lines = new ArrayList<String>();
+		for (Integer i : items.keySet()){
+			lines.add(items.get(i).toString());
+		}
+		Path file = Paths.get(storagePath);
+
+		try{
+			Files.write(file, lines, Charset.forName("UTF-8"));
+		}catch (IOException e){
+			e.printStackTrace();
+		}
+	}
+
+	private static void updateLocalStorage(Map<Integer,Item> items){
+
+	}
+
 	public static void doJoin (String ip, String port){
 
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
@@ -237,10 +262,11 @@ public class NodeApp {
 
 	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
 	//TODO: test it
-	public static void itemsAfterJoin (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
+	private static void itemsAfterJoin (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
 
 		int replicationN; //a temporary value for N
 		int keyNode;
+		boolean doRewrite = false;
 
 		ArrayList<Integer> keyNodes = new ArrayList<Integer>(nodes.keySet());
 		Collections.sort(keyNodes);
@@ -274,7 +300,12 @@ public class NodeApp {
 			//then delete that item from its list of items
 			if (!nodesCompetent.contains(myId)){
 				items.remove(keyItem);
+				doRewrite = true;
 			}
+		}
+		//TODO: how to update local storage
+		if (doRewrite) {
+			updateLocalStorage(items);
 		}
 	}
 
@@ -302,27 +333,7 @@ public class NodeApp {
 
 		}
 
-		// initialize storage file and add items
-		private void initializeStorageFile (Map<Integer, Item> items){
 
-			String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file			
-			
-			//String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-// ** il file local storage deve essere chiamato "myid"mylocalStorage, oppure deve andare nella cartella "myid" e chiamarsi myLocalStorage? **
-			
-			List<String> lines = new ArrayList<String>();
-			for (Integer i : items.keySet()){
-				lines.add(items.get(i).toString());
-			}
-			Path file = Paths.get(storagePath);
-			
-			try{
-			Files.write(file, lines, Charset.forName("UTF-8"));
-			}catch (IOException e){
-				e.printStackTrace();
-			}
-		}
-		
 		private void initializeItemList(Map<Integer, Item> items){
 			initializeStorageFile(items);
 			this.items = items;
