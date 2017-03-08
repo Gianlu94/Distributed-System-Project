@@ -205,7 +205,7 @@ public class NodeApp {
 	}
 
 	private static void updateLocalStorage(Map<Integer,Item> items){
-
+		initializeStorageFile(items);
 	}
 
 	public static void doJoin (String ip, String port){
