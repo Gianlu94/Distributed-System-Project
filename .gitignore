@@ -1,2 +1,5 @@
 *.class
 *~
+/.classpath
+/.gitignore2
+/.project

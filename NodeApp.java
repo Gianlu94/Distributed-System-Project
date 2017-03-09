@@ -188,9 +188,6 @@ public class NodeApp {
 
 		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
 
-		//String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-// ** il file local storage deve essere chiamato "myid"mylocalStorage, oppure deve andare nella cartella "myid" e chiamarsi myLocalStorage? **
-
 		List<String> lines = new ArrayList<String>();
 		for (Integer i : items.keySet()){
 			lines.add(items.get(i).toString());
@@ -230,35 +227,9 @@ public class NodeApp {
 		}else{
 			return null; // "null" would mean that in "nodes" there is not this actor, but there always should be
 		}
-		
-		/*
-		int marginG = 10000; //TODO:Replace it
-		int marginL = 0;
-		ActorRef nodeToContactG = null ;
-		ActorRef nodeToContactL = null ;
-		for (int key:nodes.keySet()){
-			if(key > myId){
-				if (key - myId < marginG){
-					marginG = key - myId;
-					nodeToContactG = nodes.get(key);
-				}
-			}
-			//if successor has a smaller Id
-			else{
-				if (myId - key > marginL) {
-					marginL = myId - key;
-					nodeToContactL = nodes.get(key);
-				}
-			}
-		}
-		if ((marginG > 0)&&(marginL==0)){
-			return nodeToContactG; //Todo:if i have only one node and node performs request to itsselfe
-									//Todo: (NO SENSE) it should return null (MANAGE)
-		}
-		else{
-			return nodeToContactL;
-		}*/
 	}
+	
+
 
 	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
 	//TODO: test it
@@ -278,6 +249,7 @@ public class NodeApp {
 
 		for (Integer keyItem:keyItems){
 			replicationN = N;
+			nodesCompetent.clear();
 			//compare the keyItem with the list of keyNodes
 			for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
 				keyNode = keyNodes.get(i);
@@ -333,7 +305,7 @@ public class NodeApp {
 
 		}
 
-
+		
 		private void initializeItemList(Map<Integer, Item> items){
 			initializeStorageFile(items);
 			this.items = items;
@@ -377,6 +349,7 @@ public class NodeApp {
 
 			else if (message instanceof ItemsList){ // received items i'm responsible for. initialize items and announce my presence
 				initializeItemList(((ItemsList)message).items);
+				itemsAfterJoin(nodes, items);
 				
 				//announce to other nodes my presence
 				for (ActorRef n : nodes.values()) {
