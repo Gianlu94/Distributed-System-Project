@@ -14,24 +14,41 @@ import akka.actor.Props;
 import akka.actor.Cancellable;
 import scala.concurrent.duration.Duration;
 import com.typesafe.config.ConfigFactory;
+
 import com.typesafe.config.Config;
 
 public class Client {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
 	static private int myId; // ID of the local node
+    static private ActorRef clientActor;
 
+    
+    public static void sendLeave (String ip, String port){
 
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		clientActor.tell(new DoLeave(), null);
+
+	}
 
 	
     public static class Node extends UntypedActor {
+    	
 		public void preStart() {
 		}
-
+	    
         public void onReceive(Object message) {
-			
+			if(message instanceof DoLeave){
+				getContext().actorSelection(remotePath).tell(new LeaveMessage(), getSelf());
+			}
 		}
     }
+    
+	public static class LeaveMessage implements Serializable {}
+	
+	public static class DoLeave implements Serializable {}
 
+
+    
     /*
         Terminal to receive client commands
      */
@@ -59,7 +76,7 @@ public class Client {
 				    }
 				    else if(tokensInput[1].toLowerCase().equals("client")){
 
-					    switch(tokensInput[4].toLowerCase()){
+					    switch(tokensInput[2].toLowerCase()){
 						    case "read":
 							    System.out.println("NOT IMPLEMENTED YET");
 						    	break;
@@ -67,7 +84,7 @@ public class Client {
 							    System.out.println("NOT IMPLEMENTED YET");
 						    	break;
 						    case "leave":
-							    System.out.println("NOT IMPLEMENTED YET");
+						    	sendLeave(tokensInput[3],tokensInput[4]);
 						    	break;
 						    default:
 						    	System.out.println("ERROR: command unknown");

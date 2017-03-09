@@ -43,6 +43,18 @@ public class NodeApp {
 	//send this msg in order to ask for the list of items one actor is responsible for
 	public static class RequestItems implements Serializable {}
 
+	//send this msg in order to tell the other nodes that the node is leaving
+	public static class LeavingAnnouncement implements Serializable {
+		private int id;
+
+		public LeavingAnnouncement(int id) {
+			this.id = id;
+		}
+		public int getId() {
+			return id;
+		}
+	}
+	
 	/*
 		This is the class that identify an item
 	 */
@@ -71,6 +83,14 @@ public class NodeApp {
 		public ItemsList(Map<Integer,Item> items){
 			this.items = items;
 		}
+	}
+	
+	public static class UpdateAfterLeaving implements Serializable{
+		private List<Item> itemList;
+
+		public UpdateAfterLeaving(List<Item> itemList){
+			this.itemList = itemList;
+		}		
 	}
 
 
@@ -201,6 +221,10 @@ public class NodeApp {
 		}
 	}
 
+	private static void appendItemToStorageFile(Item item){
+		//TODO: implement this function
+	}
+	
 	private static void updateLocalStorage(Map<Integer,Item> items){
 		initializeStorageFile(items);
 	}
@@ -213,7 +237,6 @@ public class NodeApp {
 
 	}
 
-	//naive method maybe we can think something better --works on the ring
 	public static ActorRef identifyNextNode(Map <Integer, ActorRef> nodes){
 		ArrayList<Integer> keyArray = new ArrayList<Integer>(nodes.keySet());
 		Collections.sort(keyArray);
@@ -229,6 +252,56 @@ public class NodeApp {
 		}
 	}
 	
+	// returns a map containing the nodes mapped with the list of items the nodes become responsible for after the leaving
+	private static Map<Integer, List<Item>> getNewResponsibleNodes (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
+
+		int replicationN; //a temporary value for N
+		int keyNode;
+
+		Map <Integer, List<Item>> newResponsibleNodes = new HashMap <Integer, List<Item>>();
+		
+		ArrayList<Integer> keyNodes = new ArrayList<Integer>(nodes.keySet());
+		Collections.sort(keyNodes);
+
+		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
+
+
+		ArrayList<Integer> nodesCompetent = new ArrayList<Integer>();
+
+		for (Integer keyItem:keyItems){
+			replicationN = N;
+			nodesCompetent.clear();
+			//compare the keyItem with the list of keyNodes
+			for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
+				keyNode = keyNodes.get(i);
+				if (keyItem < keyNode){ // I find all the elements that have to contain that item
+					replicationN--;
+					nodesCompetent.add(keyNode);
+				}
+			}
+
+			//it means that the remaining elements that contains that item
+			//are located at the beginning of the ring
+			if (replicationN != 0){
+				for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
+					keyNode = keyNodes.get(i);
+					replicationN--;
+					nodesCompetent.add(keyNode);
+				}
+			}
+			
+			int responsibleNode = nodesCompetent.get(nodesCompetent.size()-1);
+			List <Item> listOfResponsibleNode = newResponsibleNodes.get(responsibleNode);
+			if (listOfResponsibleNode == null){
+				List<Item> itemList = new ArrayList<Item>();
+				itemList.add(items.get(keyItem));
+				newResponsibleNodes.put(responsibleNode, itemList);
+			} else {
+				listOfResponsibleNode.add(items.get(keyItem));
+			}
+		}
+		return newResponsibleNodes;
+	}
 
 
 	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
@@ -333,6 +406,7 @@ public class NodeApp {
 			else if (message instanceof Join) {
 				int id = ((Join)message).id;
 				System.out.println("Node " + id + " joined");
+				goBackToTerminal();
 				nodes.put(id, getSender());
 				itemsAfterJoin(nodes,items);
 
@@ -353,11 +427,36 @@ public class NodeApp {
 				
 				//announce to other nodes my presence
 				for (ActorRef n : nodes.values()) {
-						n.tell(new Join(myId), getSelf());
+					n.tell(new Join(myId), getSelf());
 				}
 
 				
 			}
+			else if (message instanceof Client.LeaveMessage){ // a client just told me to leave the network
+				for (ActorRef n : nodes.values()) {
+					n.tell(new LeavingAnnouncement(myId), getSelf());
+				}
+				
+				Map <Integer, List<Item>> newResponsibleNodes;
+				newResponsibleNodes = getNewResponsibleNodes(nodes, items);
+				
+				for (int i : newResponsibleNodes.keySet()){
+					ActorRef toBeNotified = nodes.get(i);
+					toBeNotified.tell(new UpdateAfterLeaving(newResponsibleNodes.get(i)), getSelf());
+				}				
+			}
+			else if (message instanceof LeavingAnnouncement){ // a node just told me that it is about to leave
+				nodes.remove(((LeavingAnnouncement)message).getId());
+			}
+			else if (message instanceof UpdateAfterLeaving){ // a node just sent me the list of items it had, which now I am responsible for
+				List<Item> newItems = ((UpdateAfterLeaving)message).itemList;
+				for (Item item : newItems){
+					appendItemToStorageFile(item);
+					items.put(item.key, item);
+				}
+			}
+			
+			
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
 				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
