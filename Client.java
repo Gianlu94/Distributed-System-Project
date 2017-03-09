@@ -135,7 +135,6 @@ public class Client {
     public static void main(String[] args) {
 	    Config config = ConfigFactory.load("client");
 	    final ActorSystem system;
-	    final ActorRef clientActor;
 
 	    /*
 		if (!(args.length >= 3 && args.length <= 5)) {

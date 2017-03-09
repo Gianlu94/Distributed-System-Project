@@ -3,6 +3,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -222,7 +223,11 @@ public class NodeApp {
 	}
 
 	private static void appendItemToStorageFile(Item item){
-		//TODO: implement this function
+		try {
+		    Files.write(Paths.get("./"+myId+"myLocalStorage.txt"), (item.toString()).getBytes(), StandardOpenOption.APPEND);
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private static void updateLocalStorage(Map<Integer,Item> items){
@@ -400,7 +405,6 @@ public class NodeApp {
 					ActorRef nextNode = identifyNextNode(nodes);
 					nextNode.tell(new RequestItems(), getSelf());
 
-
 				}
 			}
 			else if (message instanceof Join) {
@@ -437,16 +441,23 @@ public class NodeApp {
 					n.tell(new LeavingAnnouncement(myId), getSelf());
 				}
 				
+				nodes.remove(myId);
 				Map <Integer, List<Item>> newResponsibleNodes;
 				newResponsibleNodes = getNewResponsibleNodes(nodes, items);
 				
 				for (int i : newResponsibleNodes.keySet()){
 					ActorRef toBeNotified = nodes.get(i);
 					toBeNotified.tell(new UpdateAfterLeaving(newResponsibleNodes.get(i)), getSelf());
-				}				
+				}
+				
+				// re-initializing the list of nodes after leaving the network, for a possible future join
+				nodes.clear();
+				nodes.put(myId, getSelf());
 			}
 			else if (message instanceof LeavingAnnouncement){ // a node just told me that it is about to leave
-				nodes.remove(((LeavingAnnouncement)message).getId());
+				nodes.remove(((LeavingAnnouncement)message).id);
+				System.out.println("Node " + ((LeavingAnnouncement)message).id + " left\n>>");
+
 			}
 			else if (message instanceof UpdateAfterLeaving){ // a node just sent me the list of items it had, which now I am responsible for
 				List<Item> newItems = ((UpdateAfterLeaving)message).itemList;
