@@ -414,7 +414,6 @@ public class NodeApp {
 				nodes.put(id, getSender());
 				itemsAfterJoin(nodes,items);
 
-				//
 			}
 			else if (message instanceof RequestJoin){
 				getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
@@ -431,14 +430,18 @@ public class NodeApp {
 				
 				//announce to other nodes my presence
 				for (ActorRef n : nodes.values()) {
-					n.tell(new Join(myId), getSelf());
+					if(!n.equals(getSelf())){
+						n.tell(new Join(myId), getSelf());
+					}
 				}
 
 				
 			}
 			else if (message instanceof Client.LeaveMessage){ // a client just told me to leave the network
 				for (ActorRef n : nodes.values()) {
-					n.tell(new LeavingAnnouncement(myId), getSelf());
+					if(!n.equals(getSelf())){
+						n.tell(new LeavingAnnouncement(myId), getSelf());
+					}
 				}
 				
 				nodes.remove(myId);
@@ -453,14 +456,18 @@ public class NodeApp {
 				// re-initializing the list of nodes after leaving the network, for a possible future join
 				nodes.clear();
 				nodes.put(myId, getSelf());
+				
+				System.out.println("Node has been removed from the network");
+				goBackToTerminal();
 			}
 			else if (message instanceof LeavingAnnouncement){ // a node just told me that it is about to leave
 				nodes.remove(((LeavingAnnouncement)message).id);
-				System.out.println("Node " + ((LeavingAnnouncement)message).id + " left\n>>");
+				System.out.println("Node " + ((LeavingAnnouncement)message).id + " left");
+				goBackToTerminal();
 
 			}
-			else if (message instanceof UpdateAfterLeaving){ // a node just sent me the list of items it had, which now I am responsible for
-				List<Item> newItems = ((UpdateAfterLeaving)message).itemList;
+			else if (message instanceof UpdateAfterLeaving){ 					//a node just sent me the list of items it
+				List<Item> newItems = ((UpdateAfterLeaving)message).itemList;	//had, which now I am responsible for
 				for (Item item : newItems){
 					appendItemToStorageFile(item);
 					items.put(item.key, item);
