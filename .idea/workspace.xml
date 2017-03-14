@@ -2,22 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6edc0da2-f5c5-41a7-81cd-93b3c3d42109" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Client.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Project_guide_lines.pdf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/client.conf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/parameters.conf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/0/0myLocalStorage.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/0/application.conf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/1/1myLocalStorage.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/1/application.conf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/2/2myLocalStorage.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/2/application.conf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/3/3myLocalStorage.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/3/application.conf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/7/7myLocalStorage.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/java/Node/7/application.conf" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/Distributed-System-Project.iml" afterPath="$PROJECT_DIR$/.idea/Distributed-System-Project.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Distributed-System-Project.iws" />
@@ -127,7 +111,7 @@
     <treeState />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="65" />
+    <option name="x" value="-1301" />
     <option name="y" value="24" />
     <option name="width" value="1301" />
     <option name="height" value="744" />
@@ -766,12 +750,12 @@
       <workItem from="1489481813790" duration="430000" />
       <workItem from="1489482473235" duration="3477000" />
       <workItem from="1489507443503" duration="1830000" />
-      <workItem from="1489509542198" duration="662000" />
+      <workItem from="1489509542198" duration="736000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="82348000" />
+    <option name="totallyTimeSpent" value="82422000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -783,7 +767,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="24" width="1301" height="744" extended-state="6" />
+    <frame x="-1301" y="24" width="1301" height="744" extended-state="6" />
     <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
