@@ -1,5 +1,6 @@
 package main.java;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -40,12 +41,11 @@ public class Client {
 	    
         public void onReceive(Object message) {
 			if(message instanceof DoLeave){
-				getContext().actorSelection(remotePath).tell(new LeaveMessage(), getSelf());
+				getContext().actorSelection(remotePath).tell(new Message.LeaveMessage(), getSelf());
 			}
 		}
     }
-    
-	public static class LeaveMessage implements Serializable {}
+
 	
 	public static class DoLeave implements Serializable {}
 
@@ -77,8 +77,8 @@ public class Client {
 					    System.out.println("ERROR: Number of parameters wrong");
 				    }
 				    else if(tokensInput[1].toLowerCase().equals("client")){
-
-					    switch(tokensInput[2].toLowerCase()){
+					    //System.out.println(tokensInput[4].toLowerCase());
+					    switch(tokensInput[4].toLowerCase()){
 						    case "read":
 							    System.out.println("NOT IMPLEMENTED YET");
 						    	break;
@@ -86,7 +86,8 @@ public class Client {
 							    System.out.println("NOT IMPLEMENTED YET");
 						    	break;
 						    case "leave":
-						    	sendLeave(tokensInput[3],tokensInput[4]);
+							    //System.out.println("****"+tokensInput[2].toLowerCase());
+						    	sendLeave(tokensInput[2],tokensInput[3]);
 						    	break;
 						    default:
 						    	System.out.println("ERROR: command unknown");
@@ -136,7 +137,9 @@ public class Client {
 	//TO LAUNCH NODE APP FROM NODE CONFIGURATION FOLDER USE:
 	//java -cp $AKKA_CLASSPATH:.:../../../ main.java.Client
     public static void main(String[] args) {
-	    Config config = ConfigFactory.load("client");
+	    //Config config = ConfigFactory.load("client");
+	    File clientFile = new File("./../resources/client.conf");
+	    Config clientConfig = ConfigFactory.parseFile(clientFile);
 	    final ActorSystem system;
 
 	    /*
@@ -154,7 +157,7 @@ public class Client {
 		}
 		*/
 
-	    system = ActorSystem.create("client_system", config);
+	    system = ActorSystem.create("client_system", clientConfig);
 
 	    clientActor = system.actorOf(Props.create(Node.class),"client");
 

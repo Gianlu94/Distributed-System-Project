@@ -19,41 +19,7 @@ public class NodeApp {
 	static int N, R, W, T; // parameters replication number, read quorum, write quorum and timeout
 	static private ActorRef receiver;
 
-	public static class Nodelist implements Serializable {
-		Map<Integer, ActorRef> nodes;
-		char typeOfRequest;
-		public Nodelist(Map<Integer, ActorRef> nodes, char typeOfRequest) {
-			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes));
-			this.typeOfRequest = typeOfRequest;
-		}
-	}
 
-    public static class RequestNodelist implements Serializable {
-	    char typeOfRequest;
-
-	    public RequestNodelist (char typeOfRequest){
-		    this.typeOfRequest = typeOfRequest;
-	    }
-    }
-
-	//send this msg in order to require to our remoteActor to do start a Join
-	public static class RequestJoin implements Serializable {}
-
-	//send this msg in order to ask for the list of items one actor is responsible for
-	public static class RequestItems implements Serializable {}
-
-	//send this msg in order to tell the other nodes that the node is leaving
-	public static class LeavingAnnouncement implements Serializable {
-		private int id;
-
-		public LeavingAnnouncement(int id) {
-			this.id = id;
-		}
-		public int getId() {
-			return id;
-		}
-	}
-	
 	/*
 		This is the class that identify an item
 	 */
@@ -75,22 +41,6 @@ public class NodeApp {
 		}
 	}
 
-
-	public static class ItemsList implements Serializable{
-		Map<Integer, Item> items;
-
-		public ItemsList(Map<Integer,Item> items){
-			this.items = items;
-		}
-	}
-	
-	public static class UpdateAfterLeaving implements Serializable{
-		private List<Item> itemList;
-
-		public UpdateAfterLeaving(List<Item> itemList){
-			this.itemList = itemList;
-		}		
-	}
 
 
 	private static void goBackToTerminal(){
@@ -235,7 +185,7 @@ public class NodeApp {
 	public static void doJoin (String ip, String port){
 
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
-		receiver.tell(new RequestJoin()  ,null);
+		receiver.tell(new Message.RequestJoin()  ,null);
 
 
 	}
@@ -357,13 +307,6 @@ public class NodeApp {
 		}
 	}
 
-
-	public static class Join implements Serializable {
-		int id;
-		public Join(int id) {
-			this.id = id;
-		}
-	}
 	
     public static class Node extends UntypedActor {
 		
@@ -374,7 +317,7 @@ public class NodeApp {
 
 		public void preStart() {
 			if (remotePath != null) {
-    			getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
+    			getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('j'), getSelf());
 			}
 			nodes.put(myId, getSelf());
 			loadItems(items);
@@ -388,57 +331,58 @@ public class NodeApp {
 		}
 		
         public void onReceive(Object message) {
-			if (message instanceof RequestNodelist) {
-				typeOfRequest = ((RequestNodelist) message).typeOfRequest;
+			if (message instanceof Message.RequestNodelist) {
+				typeOfRequest = ((Message.RequestNodelist) message).typeOfRequest;
 				if(typeOfRequest == 'j'){
-					getSender().tell(new Nodelist(nodes,typeOfRequest), getSelf());
+					getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
 				}
 			}
-			else if (message instanceof Nodelist) {
-				typeOfRequest = ((Nodelist) message).typeOfRequest;
+			else if (message instanceof Message.Nodelist) {
+				typeOfRequest = ((Message.Nodelist) message).getTypeOfRequest();
 				if(typeOfRequest == 'j') {
 					getContext().setReceiveTimeout(Duration.Undefined());
-					nodes.putAll(((Nodelist) message).nodes);
+					nodes.putAll(((Message.Nodelist) message).getNodeList());
 					
 					ActorRef nextNode = identifyNextNode(nodes);
-					nextNode.tell(new RequestItems(), getSelf());
+					nextNode.tell(new Message.RequestItems(), getSelf());
 
 				}
 			}
-			else if (message instanceof Join) {
-				int id = ((Join)message).id;
+			else if (message instanceof Message.Join) {
+				int id = ((Message.Join)message).id;
 				System.out.println("Node " + id + " joined");
 				goBackToTerminal();
 				nodes.put(id, getSender());
 				itemsAfterJoin(nodes,items);
 
 			}
-			else if (message instanceof RequestJoin){
-				getContext().actorSelection(remotePath).tell(new RequestNodelist('j'), getSelf());
+			else if (message instanceof Message.RequestJoin){
+				getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('j'), getSelf());
 				getContext().setReceiveTimeout(Duration.create(T+"second"));
 			}
-			else if (message instanceof RequestItems){ // I have to send my items to the sender of the message
-				getSender().tell(new ItemsList(items), getSelf());
+			else if (message instanceof Message.RequestItems){ // I have to send my items to the sender of the message
+				getSender().tell(new Message.ItemsList(items), getSelf());
 
 			}
 
-			else if (message instanceof ItemsList){ // received items i'm responsible for. initialize items and announce my presence
-				initializeItemList(((ItemsList)message).items);
+			else if (message instanceof Message.ItemsList){ // received items i'm responsible for. initialize items and announce my presence
+				initializeItemList(((Message.ItemsList)message).getItemsList());
 				itemsAfterJoin(nodes, items);
 				
 				//announce to other nodes my presence
 				for (ActorRef n : nodes.values()) {
 					if(!n.equals(getSelf())){
-						n.tell(new Join(myId), getSelf());
+						n.tell(new Message.Join(myId), getSelf());
 					}
 				}
 
 				
 			}
-			/*else if (message instanceof Client.LeaveMessage){ // a client just told me to leave the network
+			else if (message instanceof Message.LeaveMessage){ // a client just told me to leave the network
+				System.out.println("Received leave msg");
 				for (ActorRef n : nodes.values()) {
 					if(!n.equals(getSelf())){
-						n.tell(new LeavingAnnouncement(myId), getSelf());
+						n.tell(new Message.LeavingAnnouncement(myId), getSelf());
 					}
 				}
 				
@@ -448,7 +392,7 @@ public class NodeApp {
 				
 				for (int i : newResponsibleNodes.keySet()){
 					ActorRef toBeNotified = nodes.get(i);
-					toBeNotified.tell(new UpdateAfterLeaving(newResponsibleNodes.get(i)), getSelf());
+					toBeNotified.tell(new Message.UpdateAfterLeaving(newResponsibleNodes.get(i)), getSelf());
 				}
 				
 				// re-initializing the list of nodes after leaving the network, for a possible future join
@@ -458,15 +402,14 @@ public class NodeApp {
 				System.out.println("Node has been removed from the network");
 				goBackToTerminal();
 			}
-			*/
-			else if (message instanceof LeavingAnnouncement){ // a node just told me that it is about to leave
-				nodes.remove(((LeavingAnnouncement)message).id);
-				System.out.println("Node " + ((LeavingAnnouncement)message).id + " left");
+			else if (message instanceof Message.LeavingAnnouncement){ // a node just told me that it is about to leave
+				nodes.remove(((Message.LeavingAnnouncement)message).getId());
+				System.out.println("Node " + ((Message.LeavingAnnouncement)message).getId() + " left");
 				goBackToTerminal();
 
 			}
-			else if (message instanceof UpdateAfterLeaving){ 					//a node just sent me the list of items it
-				List<Item> newItems = ((UpdateAfterLeaving)message).itemList;	//had, which now I am responsible for
+			else if (message instanceof Message.UpdateAfterLeaving){ 					//a node just sent me the list of items it
+				List<Item> newItems = ((Message.UpdateAfterLeaving)message).getItemsList();	//had, which now I am responsible for
 				for (Item item : newItems){
 					appendItemToStorageFile(item);
 					items.put(item.key, item);
