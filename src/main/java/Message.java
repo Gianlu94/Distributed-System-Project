@@ -27,13 +27,13 @@ public class Message {
 
 	//msg containing the list of items that sender requested
 	public static class ItemsList implements Serializable{
-		private Map<Integer, NodeApp.Item> items;
+		private Map<Integer,Item> items;
 
-		public ItemsList(Map<Integer,NodeApp.Item> items){
+		public ItemsList(Map<Integer,Item> items){
 			this.items = items;
 		}
 
-		public Map<Integer, NodeApp.Item>getItemsList(){
+		public Map<Integer, Item>getItemsList(){
 			return items;
 		}
 	}
@@ -81,13 +81,13 @@ public class Message {
 
 	//msg sent in order to communicate the list of the items to the new responsible node
 	public static class UpdateAfterLeaving implements Serializable{
-		private List<NodeApp.Item> itemList;
+		private List<Item> itemList;
 
-		public UpdateAfterLeaving(List<NodeApp.Item> itemList){
+		public UpdateAfterLeaving(List<Item> itemList){
 			this.itemList = itemList;
 		}
 
-		public List<NodeApp.Item> getItemsList(){
+		public List<Item> getItemsList(){
 			return this.itemList;
 		}
 	}

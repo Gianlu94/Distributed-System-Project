@@ -20,28 +20,6 @@ public class NodeApp {
 	static private ActorRef receiver;
 
 
-	/*
-		This is the class that identify an item
-	 */
-
-	public static class Item implements Serializable {
-		private Integer key;
-		private String value;
-		private Integer version;
-
-		public Item(Integer key, String value, Integer version ){
-			this.key = key;
-			this.value = value;
-			this.version = version;
-		}
-		
-		public String toString(){
-			String res = key + " " + value + " " + version;
-			return res;
-		}
-	}
-
-
 
 	private static void goBackToTerminal(){
 		System.out.print(">> ");
@@ -412,7 +390,7 @@ public class NodeApp {
 				List<Item> newItems = ((Message.UpdateAfterLeaving)message).getItemsList();	//had, which now I am responsible for
 				for (Item item : newItems){
 					appendItemToStorageFile(item);
-					items.put(item.key, item);
+					items.put(item.getKey(), item);
 				}
 			}
 			
