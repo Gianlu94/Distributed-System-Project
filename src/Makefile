@@ -2,6 +2,9 @@
 JAVAC = javac
 JVM= $(JAVA_HOME)/bin/java
 CPATH = ./main/java/
+PATHTONODE = ./main/nodes
+PATHNODECLASS = ../../../ main.java.NodeApp
+PATHTOCLIENTCLASS = main.java.
 CBUILD = ./build
 CLIENTPATH = main.java
 export AKKA_CLASSPATH
@@ -39,8 +42,26 @@ deleteMessage:
 	
 deleteItem:
 	@rm $(CPATH)Item*.class
+
+#----RUN NODES
+
+runNode0:
+	@cd $(PATHTONODE)/0 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
 	
-#----RUN (ONLY ONE)		
+runNode1:
+	@cd $(PATHTONODE)/1 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+
+runNode2:
+	@cd $(PATHTONODE)/2 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+
+runNode3:
+	@cd $(PATHTONODE)/3 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+
+runNode7:
+	@cd $(PATHTONODE)/7 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+
+		
+#----RUN CLIENT (ONLY ONE)		
 runClient:
-	@$(JVM) -cp $(AKKA_CLASSPATH):. main.java.Client
+	@$(JVM) -cp $(AKKA_CLASSPATH):. $(PATHTOCLIENTCLASS)Client
 
