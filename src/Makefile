@@ -8,7 +8,7 @@ export AKKA_CLASSPATH
 
 
 compileAll:
-	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)NodeApp.java 
+	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)NodeApp.java $(CPATH)Item.java 
 	
 deleteAll:
 	@rm $(CPATH)*.class

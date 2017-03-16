@@ -406,7 +406,7 @@ public class NodeApp {
         }
     }
 
-    //TO LAUNCH NODE APP FROM NODE CONFIGURATION FOLDER USE:
+    //TO LAUNCH NODE APP FROM NODE CONFIGURATION FOLDER TYPE:
 	//java -cp $AKKA_CLASSPATH:.:../../../ main.java.NodeApp
 	public static void main(String[] args) {
 		
