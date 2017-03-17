@@ -1,6 +1,7 @@
 package main.java;
 
 import akka.actor.*;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import scala.concurrent.duration.Duration;
@@ -134,24 +135,31 @@ public class NodeApp {
 	private static void initializeStorageFile (Map<Integer, Item> items){
 
 		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
+		Path file = Paths.get(storagePath);
 
 		List<String> lines = new ArrayList<String>();
 		for (Integer i : items.keySet()){
 			lines.add(items.get(i).toString());
-		}
-		Path file = Paths.get(storagePath);
+		}		
 
 		try{
-			Files.write(file, lines, Charset.forName("UTF-8"));
+			Files.write(file, lines,  Charset.forName("UTF-8"));
 		}catch (IOException e){
 			e.printStackTrace();
 		}
 	}
 
 	private static void appendItemToStorageFile(Item item){
-		try {
-		    Files.write(Paths.get("./"+myId+"myLocalStorage.txt"), (item.toString()).getBytes(), StandardOpenOption.APPEND);
-		}catch (IOException e) {
+	
+		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
+		Path file = Paths.get(storagePath);
+
+		List<String> lines = new ArrayList<String>();
+		lines.add(item.toString());		
+
+		try{
+			Files.write(file, lines,  Charset.forName("UTF-8"), StandardOpenOption.APPEND);
+		}catch (IOException e){
 			e.printStackTrace();
 		}
 	}
@@ -183,43 +191,46 @@ public class NodeApp {
 		}
 	}
 	
-	// returns a map containing the nodes mapped with the list of items the nodes become responsible for after the leaving
-	private static Map<Integer, List<Item>> getNewResponsibleNodes (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
-
-		int replicationN; //a temporary value for N
+	//returns the list of nodes that are responsible for the item given as parameter
+	public static List <Integer> getResponsibleNodes(Map<Integer,ActorRef> nodes, Integer itemKey){
+		
+		int replicationN = N; //a temporary value for N
 		int keyNode;
-
-		Map <Integer, List<Item>> newResponsibleNodes = new HashMap <Integer, List<Item>>();
+		
+		List <Integer> responsibleNodes = new ArrayList<Integer>();
 		
 		ArrayList<Integer> keyNodes = new ArrayList<Integer>(nodes.keySet());
 		Collections.sort(keyNodes);
 
-		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
+		for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
+			keyNode = keyNodes.get(i);
+			if (itemKey < keyNode){ // I find all the elements that have to contain that item
+				replicationN--;
+				responsibleNodes.add(keyNode);
+			}
+		}
 
-
-		ArrayList<Integer> nodesCompetent = new ArrayList<Integer>();
-
-		for (Integer keyItem:keyItems){
-			replicationN = N;
-			nodesCompetent.clear();
-			//compare the keyItem with the list of keyNodes
+		//it means that the remaining elements that contains that item
+		//are located at the beginning of the ring
+		if (replicationN != 0){
 			for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
 				keyNode = keyNodes.get(i);
-				if (keyItem < keyNode){ // I find all the elements that have to contain that item
-					replicationN--;
-					nodesCompetent.add(keyNode);
-				}
+				replicationN--;
+				responsibleNodes.add(keyNode);
 			}
+		}
+		return responsibleNodes;
+	}
+	
+	// returns a map containing the nodes mapped with the list of items the nodes become responsible for after the leaving
+	private static Map<Integer, List<Item>> getNewResponsibleNodes (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
 
-			//it means that the remaining elements that contains that item
-			//are located at the beginning of the ring
-			if (replicationN != 0){
-				for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
-					keyNode = keyNodes.get(i);
-					replicationN--;
-					nodesCompetent.add(keyNode);
-				}
-			}
+		Map <Integer, List<Item>> newResponsibleNodes = new HashMap <Integer, List<Item>>();
+		
+		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
+
+		for (Integer keyItem:keyItems){
+			List <Integer> nodesCompetent = getResponsibleNodes(nodes, keyItem);			
 			
 			int responsibleNode = nodesCompetent.get(nodesCompetent.size()-1);
 			List <Item> listOfResponsibleNode = newResponsibleNodes.get(responsibleNode);
@@ -239,39 +250,13 @@ public class NodeApp {
 	//TODO: test it
 	private static void itemsAfterJoin (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
 
-		int replicationN; //a temporary value for N
-		int keyNode;
 		boolean doRewrite = false;
-
-		ArrayList<Integer> keyNodes = new ArrayList<Integer>(nodes.keySet());
-		Collections.sort(keyNodes);
-
 		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
 
-
-		ArrayList<Integer> nodesCompetent = new ArrayList<Integer>();
-
 		for (Integer keyItem:keyItems){
-			replicationN = N;
-			nodesCompetent.clear();
-			//compare the keyItem with the list of keyNodes
-			for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
-				keyNode = keyNodes.get(i);
-				if (keyItem < keyNode){ // I find all the elements that have to contain that item
-					replicationN--;
-					nodesCompetent.add(keyNode);
-				}
-			}
-
-			//it means that the remaining elements that contains that item
-			//are located at the beginning of the ring
-			if (replicationN != 0){
-				for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
-					keyNode = keyNodes.get(i);
-					replicationN--;
-					nodesCompetent.add(keyNode);
-				}
-			}
+			
+			List <Integer> nodesCompetent = getResponsibleNodes(nodes, keyItem);
+			
 			//if among the nodeCompetent there is not the current node
 			//then delete that item from its list of items
 			if (!nodesCompetent.contains(myId)){
