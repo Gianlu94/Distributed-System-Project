@@ -67,6 +67,51 @@ public class Message {
 	//message sent by the client to node
 	public static class LeaveMessage implements Serializable {}
 
+	//message sent by the client to node
+	public static class ClientToCoordReadRequest implements Serializable {
+		Integer itemKey;
+		
+		public ClientToCoordReadRequest(Integer itemKey) {
+			super();
+			this.itemKey = itemKey;
+		}
+	}
+	
+	// message sent from coordinator to responsible nodes
+	public static class CoordToNodeReadRequest implements Serializable {
+		Integer itemKey;
+		
+		public CoordToNodeReadRequest(Integer itemKey) {
+			super();
+			this.itemKey = itemKey;
+		}
+	}
+	
+	public static class ReadReplyToCoord implements Serializable {
+		Item item;
+		
+		public ReadReplyToCoord(Item item) {
+			super();
+			this.item = item;
+		}
+	}
+	public static class ReadReplyToClient implements Serializable {
+		Item item;
+		Integer itemKey;
+		Boolean isExisting = false;
+		
+		public ReadReplyToClient(Item item) {
+			super();
+			this.item = item;
+			this.isExisting = true;
+		}
+		public ReadReplyToClient(Integer itemKey, Boolean isExisting) {
+			super();
+			this.itemKey = itemKey;
+			this.isExisting = isExisting;
+		}
+	}
+	
 	//send this msg in order to tell the other nodes that the node is leaving
 	public static class LeavingAnnouncement implements Serializable {
 		private int id;
@@ -91,4 +136,12 @@ public class Message {
 			return this.itemList;
 		}
 	}
+    public static class ReadTimeout implements Serializable {
+    	public ReadTimeout(Integer itemKey) {
+			super();
+			this.itemKey = itemKey;
+		}
+
+		Integer itemKey;
+    }
 }

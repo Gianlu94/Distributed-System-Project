@@ -17,7 +17,6 @@ import akka.actor.Props;
 import akka.actor.Cancellable;
 import scala.concurrent.duration.Duration;
 import com.typesafe.config.ConfigFactory;
-
 import com.typesafe.config.Config;
 
 public class Client {
@@ -33,24 +32,63 @@ public class Client {
 
 	}
 
-	
+    public static void sendRead (String ip, String port, Integer itemKey){
+
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		clientActor.tell(new DoRead(itemKey), null);
+
+	}
+    
     public static class Node extends UntypedActor {
     	
 		public void preStart() {
 		}
 	    
         public void onReceive(Object message) {
-			if(message instanceof DoLeave){
-				getContext().actorSelection(remotePath).tell(new Message.LeaveMessage(), getSelf());
-			}
-		}
+        	if(message instanceof DoLeave){
+        		getContext().actorSelection(remotePath).tell(new Message.LeaveMessage(), getSelf());
+        	} 
+        	else if(message instanceof DoRead){
+        		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(((DoRead) message).itemKey), getSelf());
+        	}
+        	else if(message instanceof Message.ReadReplyToClient){
+        		Item itemRead = ((Message.ReadReplyToClient) message).item;
+        		Integer itemKey = ((Message.ReadReplyToClient) message).itemKey;
+        		Boolean isExisting = ((Message.ReadReplyToClient) message).isExisting;
+
+        		if (!isExisting){
+        			System.out.println("The item " + itemKey + " requested does not exist in the system");
+        		} else {
+        			if(itemRead != null){
+        				System.out.println("System replied to the read request: " + itemRead.toString());
+        			} else { 
+        				System.out.println("System did not manage to compute the read request for the item: " + itemKey + " because Timeout was hit");
+
+        			}
+        		}
+    			goBackToTerminal();
+        	}
+        }
     }
 
 	
 	public static class DoLeave implements Serializable {}
+	
+	public static class DoRead implements Serializable {
+		Integer itemKey;
+		
+		public DoRead(Integer itemKey) {
+			super();
+			this.itemKey = itemKey;
+		}
+		
+	}
 
 
-    
+	private static void goBackToTerminal(){
+		System.out.print(">> ");
+	}
+	
     /*
         Terminal to receive client commands
      */
@@ -80,7 +118,7 @@ public class Client {
 					    //System.out.println(tokensInput[4].toLowerCase());
 					    switch(tokensInput[4].toLowerCase()){
 						    case "read":
-							    System.out.println("NOT IMPLEMENTED YET");
+						    	sendRead(tokensInput[2],tokensInput[3], Integer.valueOf(tokensInput[5]));
 						    	break;
 						    case "write":
 							    System.out.println("NOT IMPLEMENTED YET");

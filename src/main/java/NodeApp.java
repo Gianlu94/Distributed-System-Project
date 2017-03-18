@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class NodeApp {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
@@ -204,7 +205,7 @@ public class NodeApp {
 
 		for(int i = 0; i < keyNodes.size() && replicationN > 0; i++){
 			keyNode = keyNodes.get(i);
-			if (itemKey < keyNode){ // I find all the elements that have to contain that item
+			if (itemKey <= keyNode){ // I find all the elements that have to contain that item
 				replicationN--;
 				responsibleNodes.add(keyNode);
 			}
@@ -269,6 +270,49 @@ public class NodeApp {
 			updateLocalStorage(items);
 		}
 	}
+	
+	// TODO: to be moved in a separate class possibly
+    private static class PendingRead{
+    	private Integer itemKey;
+		private Integer counter;
+		private ActorRef client;
+    	private Item item;
+
+		public PendingRead(Integer itemKey, ActorRef client) {
+			super();
+			this.itemKey = itemKey;
+			this.counter = 0;
+			this.client = client;
+			this.item = null;
+		}
+		
+    	public ActorRef getClient() {
+			return client;
+		}
+		public void setLatestItem(Item item) {
+			if (this.item == null){
+				this.item = item;
+			} else {
+				if( this.item.getVersion() < item.getVersion()){
+					this.item = item;
+				}
+			}
+			counter++;
+		}
+		
+    	public Integer getItemKey() {
+			return itemKey;
+		}
+    	
+		public Item getItem() {
+			return item;
+		}
+
+		public Integer getCounter() {
+			return counter;
+		}
+		
+    }
 
 	
     public static class Node extends UntypedActor {
@@ -276,6 +320,10 @@ public class NodeApp {
 		// The table of all nodes in the system id->ref
 		private Map<Integer, ActorRef> nodes = new HashMap<>();
 	    private Map<Integer, Item> items = new HashMap<>();
+	    
+	    // only one read at a time is meant to be handled
+	    private PendingRead pendingReadRequest = null;
+	    
 	    private char typeOfRequest;
 
 		public void preStart() {
@@ -292,6 +340,15 @@ public class NodeApp {
 			initializeStorageFile(items);
 			this.items = items;
 		}
+		
+        void setTimeout(int time, Integer itemKey) {
+    		getContext().system().scheduler().scheduleOnce(
+    				Duration.create(time, TimeUnit.SECONDS),	
+    				getSelf(),
+    				new Message.ReadTimeout(itemKey),
+    				getContext().system().dispatcher(), getSelf()
+    				);
+    	}
 		
         public void onReceive(Object message) {
 			if (message instanceof Message.RequestNodelist) {
@@ -380,6 +437,65 @@ public class NodeApp {
 			}
 			
 			
+			else if (message instanceof Message.ClientToCoordReadRequest){ 	// client is requesting a read
+				Integer itemKey = ((Message.ClientToCoordReadRequest) message).itemKey;
+				pendingReadRequest = new PendingRead(itemKey, getSender());
+				setTimeout(itemKey, T);
+				List <Integer> responsibleNodes = getResponsibleNodes(nodes, itemKey);
+				for (int i : responsibleNodes){
+					ActorRef a = nodes.get(i);
+					a.tell(new Message.CoordToNodeReadRequest(itemKey), getSelf());
+				}
+			}			
+			else if (message instanceof Message.CoordToNodeReadRequest){ 	// coordinator is requesting a read
+				Integer itemKey = ((Message.CoordToNodeReadRequest) message).itemKey;
+				Item item = items.get(itemKey);
+				getSender().tell(new Message.ReadReplyToCoord(item), getSelf());
+				
+				if (item != null){
+					System.out.println("Read sent to Coordinator with value: " + item.toString());
+					goBackToTerminal();
+				} else {
+					System.out.println("Item to be read " + itemKey + " does not exist");
+					goBackToTerminal();
+				}
+			}
+			else if (message instanceof Message.ReadReplyToCoord){ 	// node is replying to one of my read requests
+				Item itemRead = ((Message.ReadReplyToCoord) message).item;
+				if(pendingReadRequest != null){ // if null -> i have already finished servicing the request and i can ignore further replies
+					if (itemRead != null){
+						pendingReadRequest.setLatestItem(itemRead);
+						if (pendingReadRequest.getCounter() == R){
+							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItem()), getSelf());
+							pendingReadRequest = null;
+							
+							System.out.println("Read serviced to Client with value: " + itemRead.toString());
+							goBackToTerminal();
+
+						}
+					} else{  // this means that the item does not exist in the system
+						if (pendingReadRequest.getCounter() == 0){
+							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItemKey(), false), getSelf());
+						}
+			
+						System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
+						goBackToTerminal();
+
+						pendingReadRequest = null;						
+					}
+				}
+			}
+			else if (message instanceof Message.ReadTimeout){ 	// timeout for read has been hit
+				if (pendingReadRequest != null){
+					pendingReadRequest.getClient().tell(new Message.ReadReplyToClient (pendingReadRequest.getItemKey(), true), getSelf());
+					pendingReadRequest = null;
+					
+					System.out.println("Read unsuccessful, Timeout has been hit");
+					goBackToTerminal();
+
+				}
+			}
+			
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
 				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
@@ -389,7 +505,10 @@ public class NodeApp {
 			else
             	unhandled(message);		// this actor does not handle any incoming messages
         }
+
     }
+    
+
 
     //TO LAUNCH NODE APP FROM NODE CONFIGURATION FOLDER TYPE:
 	//java -cp $AKKA_CLASSPATH:.:../../../ main.java.NodeApp
