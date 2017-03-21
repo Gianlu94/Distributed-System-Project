@@ -3,10 +3,9 @@ JAVAC = javac
 JVM= $(JAVA_HOME)/bin/java
 CPATH = ./main/java/
 PATHTONODE = ./main/nodes
-PATHNODECLASS = ../../../ main.java.NodeApp
-PATHTOCLIENTCLASS = main.java.
+PATHNODECLASS = ../../../main/java/ NodeApp
+PATHTOCLIENTCLASS = main/java/
 CBUILD = ./build
-CLIENTPATH = main.java
 export AKKA_CLASSPATH
 
 #------COMPILE------
@@ -63,5 +62,5 @@ runNode7:
 		
 #----RUN CLIENT (ONLY ONE)		
 runClient:
-	@$(JVM) -cp $(AKKA_CLASSPATH):. $(PATHTOCLIENTCLASS)Client
+	@$(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
 
