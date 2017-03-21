@@ -464,7 +464,7 @@ public class NodeApp {
 				Item itemRead = ((Message.ReadReplyToCoord) message).item;
 				if(pendingReadRequest != null){ // if null -> i have already finished servicing the request and i can ignore further replies
 					if (itemRead != null){
-						pendingReadRequest.setLatestItem(itemRead);
+						pendingReadRequest.setLatestItem(itemRead); //and increment counter
 						if (pendingReadRequest.getCounter() == R){
 							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItem()), getSelf());
 							pendingReadRequest = null;
