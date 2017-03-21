@@ -98,6 +98,7 @@ public class Client {
 	    String inputCommand;
 	    String [] tokensInput; //split command in tokens
 	    Integer tokensNumber;
+	    Integer keyItem;
 
 	    input = new Scanner(System.in);
 	    while (true){
@@ -115,11 +116,17 @@ public class Client {
 					    System.out.println("ERROR: Number of parameters wrong");
 				    }
 				    else if(tokensInput[1].toLowerCase().equals("client")){
-					    //System.out.println(tokensInput[4].toLowerCase());
+					    System.out.println("*****"+tokensInput[4].toLowerCase());
 					    switch(tokensInput[4].toLowerCase()){
 						    case "read":
-						    	sendRead(tokensInput[2],tokensInput[3], Integer.valueOf(tokensInput[5]));
-						    	break;
+						    	    try{
+								        keyItem = Integer.valueOf(tokensInput[5]);
+							        }catch(Exception e){
+								        System.out.println("ERROR: Key not correct");
+								        break;
+							        }
+							        sendRead(tokensInput[2],tokensInput[3], keyItem);
+						    	    break;
 						    case "write":
 							    System.out.println("NOT IMPLEMENTED YET");
 						    	break;
