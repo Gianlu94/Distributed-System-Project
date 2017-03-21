@@ -1,4 +1,4 @@
-package main.java;
+//package main.java;
 
 import akka.actor.ActorRef;
 
@@ -27,7 +27,7 @@ public class Message {
 
 	//msg containing the list of items that sender requested
 	public static class ItemsList implements Serializable{
-		private Map<Integer,Item> items;
+		private Map<Integer, Item> items;
 
 		public ItemsList(Map<Integer,Item> items){
 			this.items = items;

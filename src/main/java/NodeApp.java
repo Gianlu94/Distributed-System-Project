@@ -1,4 +1,4 @@
-package main.java;
+//package main.java;
 
 import akka.actor.*;
 
@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
+import java.nio.file.Files;//Todo:Inspection
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -318,8 +318,8 @@ public class NodeApp {
     public static class Node extends UntypedActor {
 		
 		// The table of all nodes in the system id->ref
-		private Map<Integer, ActorRef> nodes = new HashMap<>();
-	    private Map<Integer, Item> items = new HashMap<>();
+		private Map<Integer, ActorRef> nodes = new HashMap<Integer,ActorRef>();
+	    private Map<Integer, Item> items = new HashMap<Integer,Item>();
 	    
 	    // only one read at a time is meant to be handled
 	    private PendingRead pendingReadRequest = null;
