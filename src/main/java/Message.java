@@ -67,47 +67,53 @@ public class Message {
 	//message sent by the client to node
 	public static class LeaveMessage implements Serializable {}
 
-	//message sent by the client to node
-	public static class ClientToCoordReadRequest implements Serializable {
-		Integer itemKey;
-		
-		public ClientToCoordReadRequest(Integer itemKey) {
+	public static class MessageRead implements Serializable{
+		Integer itemKey = null;
+		Item item = null;
+
+
+		public MessageRead(Integer itemKey){
 			super();
 			this.itemKey = itemKey;
+		}
+
+		public MessageRead(Item item){
+			super();
+			this.item = item;
+		}
+	}
+	//message sent by the client to node
+	public static class ClientToCoordReadRequest extends MessageRead {
+		
+		public ClientToCoordReadRequest(Integer itemKey) {
+			super(itemKey);
 		}
 	}
 	
 	// message sent from coordinator to responsible nodes
-	public static class CoordToNodeReadRequest implements Serializable {
-		Integer itemKey;
+	public static class CoordToNodeReadRequest extends MessageRead{
 		
 		public CoordToNodeReadRequest(Integer itemKey) {
-			super();
-			this.itemKey = itemKey;
+			super(itemKey);
 		}
 	}
 	
-	public static class ReadReplyToCoord implements Serializable {
-		Item item;
+	public static class ReadReplyToCoord extends MessageRead{
 		
 		public ReadReplyToCoord(Item item) {
-			super();
-			this.item = item;
+			super(item);
 		}
 	}
-	public static class ReadReplyToClient implements Serializable {
-		Item item;
-		Integer itemKey;
+
+	public static class ReadReplyToClient extends MessageRead{
 		Boolean isExisting = false;
 		
 		public ReadReplyToClient(Item item) {
-			super();
-			this.item = item;
+			super(item);
 			this.isExisting = true;
 		}
 		public ReadReplyToClient(Integer itemKey, Boolean isExisting) {
-			super();
-			this.itemKey = itemKey;
+			super(itemKey);
 			this.isExisting = isExisting;
 		}
 	}
