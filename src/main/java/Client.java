@@ -38,6 +38,15 @@ public class Client {
 		clientActor.tell(new DoRead(itemKey), null);
 
 	}
+
+	//tell to the client to send a write request
+	public static void sendWrite (String ip, String port, Integer itemKey, String value){
+
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		clientActor.tell(new DoWrite(itemKey,value), null);
+
+	}
+
     
     public static class Node extends UntypedActor {
     	
@@ -51,6 +60,9 @@ public class Client {
         	else if(message instanceof DoRead){
         		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(((DoRead) message).itemKey), getSelf());
         	}
+        	else if(message instanceof DoWrite){
+		        //getContext().actorSelection(remotePath).tell();
+	        }
         	else if(message instanceof Message.ReadReplyToClient){
         		Item itemRead = ((Message.ReadReplyToClient) message).item;
         		Integer itemKey = ((Message.ReadReplyToClient) message).itemKey;
@@ -82,6 +94,18 @@ public class Client {
 			this.itemKey = itemKey;
 		}
 		
+	}
+
+	public static class DoWrite implements Serializable {
+		Integer itemKey;
+		String value;
+
+		public DoWrite(Integer itemKey, String value) {
+			super();
+			this.itemKey = itemKey;
+			this.value = value;
+		}
+
 	}
 
 
@@ -128,7 +152,13 @@ public class Client {
 							        sendRead(tokensInput[2],tokensInput[3], keyItem);
 						    	    break;
 						    case "write":
-							    System.out.println("NOT IMPLEMENTED YET");
+							        try{
+								        keyItem = Integer.valueOf(tokensInput[5]);
+							        }catch(Exception e){
+								        System.out.println("ERROR: Key not correct"); //TODO:we can define an utility functtion to check it
+								        break;
+							        }
+							        sendWrite(tokensInput[2],tokensInput[3],keyItem,tokensInput[6]);
 						    	break;
 						    case "leave":
 							    //System.out.println("****"+tokensInput[2].toLowerCase());
