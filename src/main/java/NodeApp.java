@@ -270,49 +270,6 @@ public class NodeApp {
 			updateLocalStorage(items);
 		}
 	}
-	
-	// TODO: to be moved in a separate class possibly
-    private static class PendingRead{
-    	private Integer itemKey;
-		private Integer counter;
-		private ActorRef client;
-    	private Item item;
-
-		public PendingRead(Integer itemKey, ActorRef client) {
-			super();
-			this.itemKey = itemKey;
-			this.counter = 0;
-			this.client = client;
-			this.item = null;
-		}
-		
-    	public ActorRef getClient() {
-			return client;
-		}
-		public void setLatestItem(Item item) {
-			if (this.item == null){
-				this.item = item;
-			} else {
-				if( this.item.getVersion() < item.getVersion()){
-					this.item = item;
-				}
-			}
-			counter++;
-		}
-		
-    	public Integer getItemKey() {
-			return itemKey;
-		}
-    	
-		public Item getItem() {
-			return item;
-		}
-
-		public Integer getCounter() {
-			return counter;
-		}
-		
-    }
 
 	
     public static class Node extends UntypedActor {

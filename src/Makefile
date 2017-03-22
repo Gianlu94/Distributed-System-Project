@@ -11,7 +11,7 @@ export AKKA_CLASSPATH
 #------COMPILE------
 
 compileAll:
-	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)NodeApp.java $(CPATH)Item.java
+	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)NodeApp.java $(CPATH)Item.java $(CPATH)PendingOperation.java $(CPATH)PendingRead.java  $(CPATH)PendingWrite.java
 	
 compileClient:
 	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)Item.java
@@ -24,6 +24,15 @@ compileMessage:
 	
 compileItem:
 	 @$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Item.java
+	 
+compilePendingOperation:
+	 @$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)PendingOperation.java
+
+compilePendingRead:
+	 @$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)PendingRead.java
+
+compileItemPendingWrite:
+	 @$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)PendingWrite.java
 	
 #------DELETE------
 
