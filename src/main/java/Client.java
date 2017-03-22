@@ -61,7 +61,8 @@ public class Client {
         		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(((DoRead) message).itemKey), getSelf());
         	}
         	else if(message instanceof DoWrite){
-		        //getContext().actorSelection(remotePath).tell();
+		        DoWrite msg = (DoWrite) message;
+		        getContext().actorSelection(remotePath).tell(new Message.ClientToCoordWriteRequest(msg.itemKey,msg.value),getSelf());
 	        }
         	else if(message instanceof Message.ReadReplyToClient){
         		Item itemRead = ((Message.ReadReplyToClient) message).item;

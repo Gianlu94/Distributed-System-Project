@@ -117,6 +117,27 @@ public class Message {
 			this.isExisting = isExisting;
 		}
 	}
+
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO WRITE---
+	*/
+
+	public static class MessageWrite implements Serializable{
+		Integer itemKey;
+		String value;
+
+		public MessageWrite (Integer itemKey, String value){
+			this.itemKey = itemKey;
+			this.value = value;
+		}
+	}
+
+	public static class ClientToCoordWriteRequest extends MessageWrite{
+
+		public ClientToCoordWriteRequest(Integer itemKey, String value){
+			super(itemKey,value);
+		}
+	}
 	
 	//send this msg in order to tell the other nodes that the node is leaving
 	public static class LeavingAnnouncement implements Serializable {

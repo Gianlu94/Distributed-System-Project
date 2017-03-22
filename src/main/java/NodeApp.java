@@ -495,6 +495,12 @@ public class NodeApp {
 
 				}
 			}
+			else if (message instanceof Message.ClientToCoordWriteRequest){
+				Message.ClientToCoordWriteRequest msgReqWriteCord = (Message.ClientToCoordWriteRequest)message;
+				System.out.println("Received write request : ITEM -> key "+msgReqWriteCord.itemKey+" value " +
+						msgReqWriteCord.value);
+				goBackToTerminal();
+			}
 			
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
