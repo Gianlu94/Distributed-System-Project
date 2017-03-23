@@ -50,6 +50,15 @@ deleteMessage:
 	
 deleteItem:
 	@rm $(CPATH)Item*.class
+	
+deletePendingOperation:
+	@rm $(CPATH)PendingOperation*.class
+
+deletePendingRead:
+	@rm $(CPATH)PendingRead*.class
+	
+deletePendingWrite:
+	@rm $(CPATH)PendingWrite*.class
 
 #----RUN NODES
 
