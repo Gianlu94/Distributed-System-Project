@@ -518,7 +518,7 @@ public class NodeApp {
 							System.out.println("Item : " + itemToWrite.toString() + " updated");
 							for (int i : responsibleNodesForWrite){
 								ActorRef a = nodes.get(i);
-								a.tell(new Message.CoordToNodeDoWrite(item,true), getSelf());
+								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
 							}
 
 							goBackToTerminal();
@@ -533,7 +533,7 @@ public class NodeApp {
 
 						for (int i : responsibleNodesForWrite){
 							ActorRef a = nodes.get(i);
-							a.tell(new Message.CoordToNodeDoWrite(item,false), getSelf());
+							a.tell(new Message.CoordToNodeDoWrite(itemToWrite,false), getSelf());
 						}
 
 						goBackToTerminal();
@@ -544,6 +544,24 @@ public class NodeApp {
 
 					}
 				}
+			}
+			else if (message instanceof  Message.CoordToNodeDoWrite){
+				Message.CoordToNodeDoWrite msg = (Message.CoordToNodeDoWrite)message;
+				Item receivedItem = msg.item;
+
+				if (msg.isExisting){
+					items.remove(receivedItem.getKey());
+					System.out.println("Updating completed -> Item "+receivedItem.toString());
+				}
+				else{
+					System.out.println("Creation completed -> Item "+receivedItem.toString());
+				}
+
+				items.put(receivedItem.getKey(),receivedItem);
+
+				updateLocalStorage(items);
+
+				goBackToTerminal();
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());

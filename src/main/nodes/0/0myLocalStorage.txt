@@ -1,1 +1,2 @@
-10 "verde" 1
+10 ciao 2
+12 blu 0
