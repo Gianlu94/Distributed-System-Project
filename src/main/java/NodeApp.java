@@ -280,6 +280,7 @@ public class NodeApp {
 	    
 	    // only one read at a time is meant to be handled
 	    private PendingRead pendingReadRequest = null;
+	    private PendingWrite pendingWriteRequest = null;
 	    
 	    private char typeOfRequest;
 
@@ -298,7 +299,7 @@ public class NodeApp {
 			this.items = items;
 		}
 		
-        void setTimeout(int time, Integer itemKey) {
+        void setReadTimeout(int time, Integer itemKey) {
     		getContext().system().scheduler().scheduleOnce(
     				Duration.create(time, TimeUnit.SECONDS),	
     				getSelf(),
@@ -306,6 +307,15 @@ public class NodeApp {
     				getContext().system().dispatcher(), getSelf()
     				);
     	}
+
+	    void setWriteTimeout(int time, Integer itemKey) {
+		    getContext().system().scheduler().scheduleOnce(
+				    Duration.create(time, TimeUnit.SECONDS),
+				    getSelf(),
+				    new Message.WriteTimeout(itemKey),
+				    getContext().system().dispatcher(), getSelf()
+		    );
+	    }
 		
         public void onReceive(Object message) {
 			if (message instanceof Message.RequestNodelist) {
@@ -397,7 +407,7 @@ public class NodeApp {
 			else if (message instanceof Message.ClientToCoordReadRequest){ 	// client is requesting a read
 				Integer itemKey = ((Message.ClientToCoordReadRequest) message).itemKey;
 				pendingReadRequest = new PendingRead(itemKey, getSender());
-				setTimeout(itemKey, T);
+				setReadTimeout(itemKey, T);
 				List <Integer> responsibleNodes = getResponsibleNodes(nodes, itemKey);
 				for (int i : responsibleNodes){
 					ActorRef a = nodes.get(i);
@@ -454,8 +464,18 @@ public class NodeApp {
 			}
 			else if (message instanceof Message.ClientToCoordWriteRequest){
 				Message.ClientToCoordWriteRequest msgReqWriteCord = (Message.ClientToCoordWriteRequest)message;
+				Integer itemKey = msgReqWriteCord.itemKey;
+
 				System.out.println("Received write request : ITEM -> key "+msgReqWriteCord.itemKey+" value " +
 						msgReqWriteCord.value);
+
+				pendingWriteRequest = new PendingWrite(msgReqWriteCord.itemKey, msgReqWriteCord.value, getSender());
+				setWriteTimeout(itemKey, T);
+				List <Integer> responsibleNodes = getResponsibleNodes(nodes, itemKey);
+				for (int i : responsibleNodes){
+					ActorRef a = nodes.get(i);
+					//a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
+				}
 				goBackToTerminal();
 			}
 			

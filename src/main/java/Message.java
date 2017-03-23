@@ -118,6 +118,15 @@ public class Message {
 		}
 	}
 
+	public static class ReadTimeout extends MessageRead {
+		public ReadTimeout(Integer itemKey) {
+			super(itemKey);
+			//this.itemKey = itemKey;
+		}
+
+		//Integer itemKey;
+	}
+
 	/*
 		---- HERE ARE DEFINED THE MSGs RELATED TO WRITE---
 	*/
@@ -125,6 +134,10 @@ public class Message {
 	public static class MessageWrite implements Serializable{
 		Integer itemKey;
 		String value;
+
+		public MessageWrite (Integer itemKey){
+			this.itemKey = itemKey;
+		}
 
 		public MessageWrite (Integer itemKey, String value){
 			this.itemKey = itemKey;
@@ -137,6 +150,15 @@ public class Message {
 		public ClientToCoordWriteRequest(Integer itemKey, String value){
 			super(itemKey,value);
 		}
+	}
+
+	public static class WriteTimeout extends MessageWrite {
+		public WriteTimeout(Integer itemKey) {
+			super(itemKey);
+			//this.itemKey = itemKey;
+		}
+
+		//Integer itemKey;
 	}
 	
 	//send this msg in order to tell the other nodes that the node is leaving
@@ -163,12 +185,5 @@ public class Message {
 			return this.itemList;
 		}
 	}
-    public static class ReadTimeout implements Serializable {
-    	public ReadTimeout(Integer itemKey) {
-			super();
-			this.itemKey = itemKey;
-		}
 
-		Integer itemKey;
-    }
 }
