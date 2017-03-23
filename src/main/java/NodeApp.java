@@ -281,6 +281,10 @@ public class NodeApp {
 	    // only one read at a time is meant to be handled
 	    private PendingRead pendingReadRequest = null;
 	    private PendingWrite pendingWriteRequest = null;
+
+	    //item sent from the client
+	    private Item itemToWrite = null;
+	    private List<Integer> responsibleNodesForWrite = null;
 	    
 	    private char typeOfRequest;
 
@@ -466,13 +470,15 @@ public class NodeApp {
 				Message.ClientToCoordWriteRequest msgReqWriteCord = (Message.ClientToCoordWriteRequest)message;
 				Integer itemKey = msgReqWriteCord.itemKey;
 
+				itemToWrite = new Item(itemKey, msgReqWriteCord.value, 0); //no problem with version 0
+
 				System.out.println("Received write request : ITEM -> key "+msgReqWriteCord.itemKey+" value " +
 						msgReqWriteCord.value);
 
 				pendingWriteRequest = new PendingWrite(msgReqWriteCord.itemKey, msgReqWriteCord.value, getSender());
 				setWriteTimeout(itemKey, T);
-				List <Integer> responsibleNodes = getResponsibleNodes(nodes, itemKey);
-				for (int i : responsibleNodes){
+				responsibleNodesForWrite = getResponsibleNodes(nodes, itemKey);
+				for (int i : responsibleNodesForWrite){
 					ActorRef a = nodes.get(i);
 					a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
 				}
@@ -492,11 +498,53 @@ public class NodeApp {
 					System.out.println("Item " + itemKey + ": updating..... ");
 					goBackToTerminal();
 				}
-
-
-
 			}
-			
+			else if (message instanceof  Message.WriteReplyToCoord){
+				Message.WriteReplyToCoord msg = (Message.WriteReplyToCoord)message;
+				Item item = msg.item;
+				Item latestItem;
+
+				if (pendingWriteRequest != null){
+					if (item != null){
+						pendingWriteRequest.setLatestItem(item);
+						if (pendingWriteRequest.getCounter() == Math.max(R,W)){
+							latestItem = pendingWriteRequest.getItem();
+							//itemToWrite.setValue(latestItem.getValue());
+							itemToWrite.setVersion(latestItem.getVersion()+1);
+							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true), getSelf());
+
+
+
+							System.out.println("Item : " + itemToWrite.toString() + " updated");
+							for (int i : responsibleNodesForWrite){
+								ActorRef a = nodes.get(i);
+								a.tell(new Message.CoordToNodeDoWrite(item,true), getSelf());
+							}
+
+							goBackToTerminal();
+
+							//For the next request
+							pendingWriteRequest = null;
+						}
+					}
+					else{
+						pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,false), getSelf());
+						System.out.println("Item : " + itemToWrite.toString() + " created");
+
+						for (int i : responsibleNodesForWrite){
+							ActorRef a = nodes.get(i);
+							a.tell(new Message.CoordToNodeDoWrite(item,false), getSelf());
+						}
+
+						goBackToTerminal();
+
+						//For the next request
+						pendingWriteRequest = null;
+
+
+					}
+				}
+			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
 				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");

@@ -135,6 +135,7 @@ public class Message {
 		Integer itemKey;
 		String value;
 		Item item;
+		boolean isExisting;
 
 		public MessageWrite (Integer itemKey){
 			this.itemKey = itemKey;
@@ -147,6 +148,11 @@ public class Message {
 
 		public MessageWrite (Item item){
 			this.item = item;
+		}
+
+		public MessageWrite (Item item, boolean isExisting){
+			this.item = item;
+			this.isExisting = isExisting;
 		}
 	}
 
@@ -169,6 +175,20 @@ public class Message {
 
 		public WriteReplyToCoord (Item item) {
 			super(item);
+		}
+	}
+
+	public static class WriteReplyToClient extends MessageWrite{
+
+		public WriteReplyToClient(Item item, boolean isExisting) {
+			super(item,isExisting);
+		}
+	}
+
+	public static class CoordToNodeDoWrite extends MessageWrite{
+
+		public CoordToNodeDoWrite (Item item, boolean isExisting) {
+			super(item,isExisting);
 		}
 	}
 
