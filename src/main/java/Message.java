@@ -134,6 +134,7 @@ public class Message {
 	public static class MessageWrite implements Serializable{
 		Integer itemKey;
 		String value;
+		Item item;
 
 		public MessageWrite (Integer itemKey){
 			this.itemKey = itemKey;
@@ -143,12 +144,31 @@ public class Message {
 			this.itemKey = itemKey;
 			this.value = value;
 		}
+
+		public MessageWrite (Item item){
+			this.item = item;
+		}
 	}
 
 	public static class ClientToCoordWriteRequest extends MessageWrite{
 
 		public ClientToCoordWriteRequest(Integer itemKey, String value){
 			super(itemKey,value);
+		}
+	}
+
+	public static class CoordToNodeWriteRequest extends MessageWrite{
+
+		public CoordToNodeWriteRequest(Integer itemKey){
+			super(itemKey);
+		}
+
+	}
+
+	public static class WriteReplyToCoord extends MessageWrite{
+
+		public WriteReplyToCoord (Item item) {
+			super(item);
 		}
 	}
 

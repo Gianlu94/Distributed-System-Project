@@ -462,7 +462,7 @@ public class NodeApp {
 
 				}
 			}
-			else if (message instanceof Message.ClientToCoordWriteRequest){
+			else if (message instanceof Message.ClientToCoordWriteRequest){ //client sent me a write request
 				Message.ClientToCoordWriteRequest msgReqWriteCord = (Message.ClientToCoordWriteRequest)message;
 				Integer itemKey = msgReqWriteCord.itemKey;
 
@@ -474,9 +474,27 @@ public class NodeApp {
 				List <Integer> responsibleNodes = getResponsibleNodes(nodes, itemKey);
 				for (int i : responsibleNodes){
 					ActorRef a = nodes.get(i);
-					//a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
+					a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
 				}
 				goBackToTerminal();
+			}
+			else if (message instanceof  Message.CoordToNodeWriteRequest){
+				Message.CoordToNodeWriteRequest msg = (Message.CoordToNodeWriteRequest)message;
+				Integer itemKey = msg.itemKey;
+				Item item = items.get(itemKey);
+
+				getSender().tell(new Message.WriteReplyToCoord(item), getSelf());
+
+				if (item == null){
+					System.out.println("Items is not present: creation......");
+					goBackToTerminal();
+				} else {
+					System.out.println("Item " + itemKey + ": updating..... ");
+					goBackToTerminal();
+				}
+
+
+
 			}
 			
 			else if (message instanceof ReceiveTimeout){
