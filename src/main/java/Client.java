@@ -78,6 +78,21 @@ public class Client {
         		}
     			goBackToTerminal();
         	}
+        	else if (message instanceof Message.WriteReplyToClient){
+		        Message.WriteReplyToClient msg = (Message.WriteReplyToClient)message;
+		        if (!msg.failed) {
+			        if (msg.isExisting) {
+				        System.out.println("Updating success-> Item " + msg.item.toString());
+			        } else {
+				        System.out.println("Creation success-> Item " + msg.item.toString());
+			        }
+		        }
+		        else{
+			        System.out.println("System did not manage to compute the write request for the item: " +
+					        msg.itemKey + " "+msg.value +" because Timeout was hit");
+		        }
+		        goBackToTerminal();
+	        }
         }
     }
 

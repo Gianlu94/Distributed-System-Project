@@ -179,10 +179,13 @@ public class Message {
 	}
 
 	public static class WriteReplyToClient extends MessageWrite{
+		boolean failed;
 
-		public WriteReplyToClient(Item item, boolean isExisting) {
+		public WriteReplyToClient(Item item, boolean isExisting,boolean failed) {
 			super(item,isExisting);
+			this.failed = failed;
 		}
+
 	}
 
 	public static class CoordToNodeDoWrite extends MessageWrite{

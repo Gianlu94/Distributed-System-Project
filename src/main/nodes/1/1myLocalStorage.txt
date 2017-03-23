@@ -1,2 +1,3 @@
-10 ciao 2
+10 red 3
 12 blu 0
+14 green 0

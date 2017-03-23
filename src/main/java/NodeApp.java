@@ -511,7 +511,7 @@ public class NodeApp {
 							latestItem = pendingWriteRequest.getItem();
 							//itemToWrite.setValue(latestItem.getValue());
 							itemToWrite.setVersion(latestItem.getVersion()+1);
-							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true), getSelf());
+							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true,false), getSelf());
 
 
 
@@ -528,7 +528,8 @@ public class NodeApp {
 						}
 					}
 					else{
-						pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,false), getSelf());
+						pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
+								getSelf());
 						System.out.println("Item : " + itemToWrite.toString() + " created");
 
 						for (int i : responsibleNodesForWrite){
@@ -562,6 +563,18 @@ public class NodeApp {
 				updateLocalStorage(items);
 
 				goBackToTerminal();
+			}
+			else if (message instanceof Message.WriteTimeout){ 	// timeout for read has been hit
+				if (pendingWriteRequest != null){
+					//set null we are not interested in knowing if node is present or not
+					pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient (itemToWrite, true, true),
+							getSelf());
+					pendingWriteRequest = null;
+
+					System.out.println("Write unsuccessful, Timeout has been hit");
+					goBackToTerminal();
+
+				}
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
