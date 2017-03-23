@@ -1,6 +1,7 @@
 //package main.java;
 
 import akka.actor.ActorRef;
+import com.sun.xml.internal.fastinfoset.algorithm.IntegerEncodingAlgorithm;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -137,6 +138,10 @@ public class Message {
 		Item item;
 		boolean isExisting;
 
+		public MessageWrite (){
+
+		}
+
 		public MessageWrite (Integer itemKey){
 			this.itemKey = itemKey;
 		}
@@ -192,6 +197,14 @@ public class Message {
 
 		public CoordToNodeDoWrite (Item item, boolean isExisting) {
 			super(item,isExisting);
+		}
+	}
+
+	public static class rejectWrite extends MessageWrite{
+		Integer N;
+		public rejectWrite(Integer N) {
+			super();
+			this.N = N;
 		}
 	}
 

@@ -93,6 +93,10 @@ public class Client {
 		        }
 		        goBackToTerminal();
 	        }
+	        else if (message instanceof Message.rejectWrite){
+		        Message.rejectWrite msg = (Message.rejectWrite)message;
+		        System.out.println("Write rejected: network with less than of "+msg.N );
+	        }
         }
     }
 

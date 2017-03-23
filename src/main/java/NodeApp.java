@@ -468,19 +468,26 @@ public class NodeApp {
 			}
 			else if (message instanceof Message.ClientToCoordWriteRequest){ //client sent me a write request
 				Message.ClientToCoordWriteRequest msgReqWriteCord = (Message.ClientToCoordWriteRequest)message;
-				Integer itemKey = msgReqWriteCord.itemKey;
 
-				itemToWrite = new Item(itemKey, msgReqWriteCord.value, 0); //no problem with version 0
+				if (nodes.size() < N){
+					getSender().tell(new Message.rejectWrite(N), getSelf());
+					System.out.println("Write operation rejected: less than "+N);
+				}
+				else {
+					Integer itemKey = msgReqWriteCord.itemKey;
 
-				System.out.println("Received write request : ITEM -> key "+msgReqWriteCord.itemKey+" value " +
-						msgReqWriteCord.value);
+					itemToWrite = new Item(itemKey, msgReqWriteCord.value, 0); //no problem with version 0
 
-				pendingWriteRequest = new PendingWrite(msgReqWriteCord.itemKey, msgReqWriteCord.value, getSender());
-				setWriteTimeout(itemKey, T);
-				responsibleNodesForWrite = getResponsibleNodes(nodes, itemKey);
-				for (int i : responsibleNodesForWrite){
-					ActorRef a = nodes.get(i);
-					a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
+					System.out.println("Received write request : ITEM -> key " + msgReqWriteCord.itemKey + " value " +
+							msgReqWriteCord.value);
+
+					pendingWriteRequest = new PendingWrite(msgReqWriteCord.itemKey, msgReqWriteCord.value, getSender());
+					setWriteTimeout(itemKey, T);
+					responsibleNodesForWrite = getResponsibleNodes(nodes, itemKey);
+					for (int i : responsibleNodesForWrite) {
+						ActorRef a = nodes.get(i);
+						a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
+					}
 				}
 				goBackToTerminal();
 			}
