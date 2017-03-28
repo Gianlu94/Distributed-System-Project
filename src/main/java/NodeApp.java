@@ -434,6 +434,28 @@ public class NodeApp {
 			else if (message instanceof Message.ReadReplyToCoord){ 	// node is replying to one of my read requests
 				Item itemRead = ((Message.ReadReplyToCoord) message).item;
 				if(pendingReadRequest != null){ // if null -> i have already finished servicing the request and i can ignore further replies
+					
+					pendingReadRequest.setLatestItem(itemRead); //and increment counter
+					if (pendingReadRequest.getCounter() == R){
+
+						if (pendingReadRequest.getItem() != null){
+							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItem()), getSelf());
+						} else { // this means that the item does not exist in the system
+							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItemKey(), false), getSelf());
+						}
+
+
+						if (pendingReadRequest.getItem() != null){
+							System.out.println("Read serviced to Client with value: " + itemRead.toString());
+							goBackToTerminal();
+						} else {
+							System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
+							goBackToTerminal();
+						}
+						
+						pendingReadRequest = null;
+					}
+					/*
 					if (itemRead != null){
 						pendingReadRequest.setLatestItem(itemRead); //and increment counter
 						if (pendingReadRequest.getCounter() == R){
@@ -453,7 +475,7 @@ public class NodeApp {
 						goBackToTerminal();
 
 						pendingReadRequest = null;						
-					}
+					}*/
 				}
 			}
 			else if (message instanceof Message.ReadTimeout){ 	// timeout for read has been hit
@@ -512,6 +534,45 @@ public class NodeApp {
 				Item latestItem;
 
 				if (pendingWriteRequest != null){
+					pendingWriteRequest.setLatestItem(item);
+					if (pendingWriteRequest.getCounter() == Math.max(R,W)){
+						
+						latestItem = pendingWriteRequest.getItem();
+						//itemToWrite.setValue(latestItem.getValue());
+						if (latestItem != null){
+							itemToWrite.setVersion(latestItem.getVersion()+1);
+							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true,false), getSelf());
+
+
+
+							System.out.println("Item : " + itemToWrite.toString() + " updated");
+							for (int i : responsibleNodesForWrite){
+								ActorRef a = nodes.get(i);
+								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
+							}
+
+							goBackToTerminal();
+							
+						}else{
+							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
+									getSelf());
+							System.out.println("Item : " + itemToWrite.toString() + " created");
+
+							for (int i : responsibleNodesForWrite){
+								ActorRef a = nodes.get(i);
+								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,false), getSelf());
+							}
+
+							goBackToTerminal();
+
+						}
+
+						//For the next request
+						pendingWriteRequest = null;
+					}
+					
+					
+					/*
 					if (item != null){
 						pendingWriteRequest.setLatestItem(item);
 						if (pendingWriteRequest.getCounter() == Math.max(R,W)){
@@ -548,9 +609,8 @@ public class NodeApp {
 
 						//For the next request
 						pendingWriteRequest = null;
-
-
-					}
+					}*/
+					
 				}
 			}
 			else if (message instanceof  Message.CoordToNodeDoWrite){
