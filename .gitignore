@@ -1,6 +1,6 @@
 *.class
 *~
-*.xml
+./idea/workspace.xml
 /.classpath
 /.gitignore2
 /.project
