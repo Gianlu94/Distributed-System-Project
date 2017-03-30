@@ -70,7 +70,6 @@ public class NodeApp {
 							break;
 						case "recover":
 								doRecovery(tokensInput[3].toLowerCase(), tokensInput[4].toLowerCase());
-								crashed = false;
 							break;
 						default:
 							System.err.println("ERROR: unknown command");
@@ -267,7 +266,7 @@ public class NodeApp {
 
 	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
 	//TODO: test it
-	private static void itemsAfterJoin (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
+	private static void notResposibleItemRemove(Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
 
 		boolean doRewrite = false;
 		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
@@ -340,7 +339,8 @@ public class NodeApp {
 	    }
 		
         public void onReceive(Object message) {
-			if (crashed && !(message instanceof Message.RequestRecovery)){
+			if (crashed && !(message instanceof Message.Nodelist) &&
+					!(message instanceof Message.RequestRecovery)){
 				System.out.println("Dropped msg");
 				goBackToTerminal();
 				return;
@@ -357,13 +357,25 @@ public class NodeApp {
 				getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
 			}
 			else if (message instanceof Message.Nodelist) {
+				Message.Nodelist msg = (Message.Nodelist) message;
 				typeOfRequest = ((Message.Nodelist) message).getTypeOfRequest();
+				getContext().setReceiveTimeout(Duration.Undefined());
 				if(typeOfRequest == 'j') {
-					getContext().setReceiveTimeout(Duration.Undefined());
-					nodes.putAll(((Message.Nodelist) message).getNodeList());
+					nodes.putAll(msg.getNodeList());
 					
 					ActorRef nextNode = identifyNextNode(nodes);
 					nextNode.tell(new Message.RequestItems(), getSelf());
+
+				}
+				else if (typeOfRequest == 'r'){
+					nodes = new HashMap<Integer, ActorRef>();
+					items = new HashMap<Integer, Item>();
+
+					nodes.putAll(msg.getNodeList());
+					loadItems(items);
+
+					notResposibleItemRemove(nodes,items);
+					crashed = false;
 
 				}
 			}
@@ -372,7 +384,7 @@ public class NodeApp {
 				System.out.println("Node " + id + " joined");
 				goBackToTerminal();
 				nodes.put(id, getSender());
-				itemsAfterJoin(nodes,items);
+				notResposibleItemRemove(nodes,items);
 
 			}
 			else if (message instanceof Message.RequestJoin){
@@ -386,7 +398,7 @@ public class NodeApp {
 
 			else if (message instanceof Message.ItemsList){ // received items i'm responsible for. initialize items and announce my presence
 				initializeItemList(((Message.ItemsList)message).getItemsList());
-				itemsAfterJoin(nodes, items);
+				notResposibleItemRemove(nodes, items);
 				
 				//announce to other nodes my presence
 				for (ActorRef n : nodes.values()) {
