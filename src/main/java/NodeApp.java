@@ -340,7 +340,7 @@ public class NodeApp {
 	    }
 		
         public void onReceive(Object message) {
-			if (crashed){
+			if (crashed && !(message instanceof Message.RequestRecovery)){
 				System.out.println("Dropped msg");
 				goBackToTerminal();
 				return;
@@ -348,8 +348,13 @@ public class NodeApp {
 			if (message instanceof Message.RequestNodelist) {
 				typeOfRequest = ((Message.RequestNodelist) message).typeOfRequest;
 				if(typeOfRequest == 'j'){
-					getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
+					System.out.println("[JOIN] Received request nodes list from node "+ getSender().toString());
 				}
+				else if (typeOfRequest == 'r'){
+					System.out.println("[RECOVERY] Received request nodes list from node "+ getSender().toString());
+				}
+				goBackToTerminal();
+				getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
 			}
 			else if (message instanceof Message.Nodelist) {
 				typeOfRequest = ((Message.Nodelist) message).getTypeOfRequest();
@@ -654,6 +659,10 @@ public class NodeApp {
 
 				goBackToTerminal();
 			}
+			else if (message instanceof Message.RequestRecovery){
+				getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('r'), getSelf());
+				getContext().setReceiveTimeout(Duration.create(T+"second"));
+			}
 			else if (message instanceof Message.WriteTimeout){ 	// timeout for read has been hit
 				if (pendingWriteRequest != null){
 					//set null we are not interested in knowing if node is present or not
@@ -697,7 +706,7 @@ public class NodeApp {
 			String ip = args[0];
 			String port = args[1];
     		// The Akka path to the bootstrapping peer
-			remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+			remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node"+myId;
 			System.out.println("Starting node " + myId + "; bootstrapping node: " + ip + ":"+ port);
 		}
 		else 
@@ -709,7 +718,7 @@ public class NodeApp {
 		// Create a single node actor
 		receiver = system.actorOf(
 				Props.create(Node.class),	// actor class 
-				"node"						// actor name
+				"node"					// actor name
 				);
 
 		// Load parameters from parameters configuration file
