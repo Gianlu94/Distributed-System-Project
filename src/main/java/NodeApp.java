@@ -36,6 +36,8 @@ public class NodeApp {
 		String inputCommand;
 		String [] tokensInput; //split command in tokens
 		Integer tokensNumber;
+		String firstCommand;
+		Boolean crashed = false;
 
 
 		input = new Scanner(System.in);
@@ -44,20 +46,27 @@ public class NodeApp {
 			inputCommand = input.nextLine();
 			tokensInput = inputCommand.split(" ");
 
-			if (tokensInput[0].toLowerCase().equals("e")){
+			firstCommand = tokensInput[0].toLowerCase();
+			if (firstCommand.equals("e")) {
 				System.exit(0); // for us remember to remove it
 			}
-			if (tokensInput.length != 5){
+			else if (firstCommand.equals("crash")){
+				crashed = true; //crashed state setted
+			}
+
+			if ((tokensInput.length != 5) && (tokensInput.length != 1)){
 				System.err.println("ERROR: Wrong number of parameters");
 			}
 			else{
-				if ((tokensInput[0].toLowerCase().equals("java"))&&
+				if ((firstCommand.equals("java"))&&
 				(tokensInput[1].toLowerCase().equals("node"))){
 
 					switch (tokensInput[2].toLowerCase()){
 						case "join":
 							//System.out.println("ERROR: Not implemented yet");
-							doJoin(tokensInput[3].toLowerCase(),tokensInput[4].toLowerCase());
+							if (crashed != true) {
+								doJoin(tokensInput[3].toLowerCase(), tokensInput[4].toLowerCase());
+							}
 							break;
 						case "recover":
 							System.out.println("ERROR: Not implemented yet");
