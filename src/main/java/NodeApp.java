@@ -20,6 +20,7 @@ public class NodeApp {
 	static private int myId; // ID of the local node
 	static int N, R, W, T; // parameters replication number, read quorum, write quorum and timeout
 	static private ActorRef receiver;
+	static private Boolean crashed;
 
 
 
@@ -37,8 +38,7 @@ public class NodeApp {
 		String [] tokensInput; //split command in tokens
 		Integer tokensNumber;
 		String firstCommand;
-		Boolean crashed = false;
-
+		crashed = false;
 
 		input = new Scanner(System.in);
 		while (true) {
@@ -69,7 +69,8 @@ public class NodeApp {
 							}
 							break;
 						case "recover":
-							System.out.println("ERROR: Not implemented yet");
+								doRecovery(tokensInput[3].toLowerCase(), tokensInput[4].toLowerCase());
+								crashed = false;
 							break;
 						default:
 							System.err.println("ERROR: unknown command");
@@ -182,6 +183,14 @@ public class NodeApp {
 
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
 		receiver.tell(new Message.RequestJoin()  ,null);
+
+
+	}
+
+	public static void doRecovery (String ip, String port){
+
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		receiver.tell(new Message.RequestRecovery()  ,null);
 
 
 	}
@@ -331,6 +340,11 @@ public class NodeApp {
 	    }
 		
         public void onReceive(Object message) {
+			if (crashed){
+				System.out.println("Dropped msg");
+				goBackToTerminal();
+				return;
+			}
 			if (message instanceof Message.RequestNodelist) {
 				typeOfRequest = ((Message.RequestNodelist) message).typeOfRequest;
 				if(typeOfRequest == 'j'){
@@ -654,7 +668,7 @@ public class NodeApp {
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
-				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
+				System.out.println("ERROR: Failed to contact node "+remotePath);
 				goBackToTerminal();
 
 			}

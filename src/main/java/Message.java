@@ -215,7 +215,19 @@ public class Message {
 
 		//Integer itemKey;
 	}
-	
+
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO RECOVERY---
+	*/
+
+	public static class RequestRecovery{
+		public RequestRecovery(){
+
+		}
+	}
+
+
+
 	//send this msg in order to tell the other nodes that the node is leaving
 	public static class LeavingAnnouncement implements Serializable {
 		private int id;
