@@ -340,7 +340,7 @@ public class NodeApp {
 		
         public void onReceive(Object message) {
 			if (crashed && !(message instanceof Message.Nodelist) &&
-					!(message instanceof Message.RequestRecovery)){
+					!(message instanceof Message.RequestRecovery) && !(message instanceof ReceiveTimeout)){
 				System.out.println("Dropped msg");
 				goBackToTerminal();
 				return;
