@@ -3,8 +3,9 @@ JAVAC = javac
 JVM= $(JAVA_HOME)/bin/java
 CPATH = ./main/java/
 PATHTONODE = ./main/nodes
-PATHNODECLASS = ../../../main/java/ NodeApp
-PATHTOCLIENTCLASS = main/java/
+PATHTOCLIENT = ./main/clients
+PATHNODECLASS = ../../../main/java/
+PATHTOCLIENTCLASS = ../../../main/java/
 CBUILD = ./build
 export AKKA_CLASSPATH
 
@@ -63,22 +64,36 @@ deletePendingWrite:
 #----RUN NODES
 
 runNode0:
-	@cd $(PATHTONODE)/0 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+	@cd $(PATHTONODE)/0 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 	
 runNode1:
-	@cd $(PATHTONODE)/1 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+	@cd $(PATHTONODE)/1 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 
 runNode2:
-	@cd $(PATHTONODE)/2 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+	@cd $(PATHTONODE)/2 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 
 runNode3:
-	@cd $(PATHTONODE)/3 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+	@cd $(PATHTONODE)/3 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 
 runNode7:
-	@cd $(PATHTONODE)/7 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS)
+	@cd $(PATHTONODE)/7 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 
 		
-#----RUN CLIENT (ONLY ONE)		
-runClient:
-	@$(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+#----RUN CLIENT	
+runClient0:
+	@cd $(PATHTOCLIENT)/0 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+	
+runClient1:
+	@cd $(PATHTOCLIENT)/1 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+	
+runClient2:
+	@cd $(PATHTOCLIENT)/2 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+
+runClient3:
+	@cd $(PATHTOCLIENT)/3 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+	
+runClient4:
+	@cd $(PATHTOCLIENT)/4 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+
+
 

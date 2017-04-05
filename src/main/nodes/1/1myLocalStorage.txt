@@ -1,3 +1,5 @@
 10 red 3
+11 purple 0
 12 blu 0
+13 pink 0
 14 green 0

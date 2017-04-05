@@ -234,7 +234,7 @@ public class Client {
 	//java -cp $AKKA_CLASSPATH:.:../../../ main.java.Client
     public static void main(String[] args) {
 	    //Config config = ConfigFactory.load("client");
-	    File clientFile = new File("./main/resources/client.conf");
+	    File clientFile = new File("client.conf");
 	    Config clientConfig = ConfigFactory.parseFile(clientFile);
 	    final ActorSystem system;
 
