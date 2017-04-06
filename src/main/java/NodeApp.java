@@ -7,11 +7,6 @@ import com.typesafe.config.ConfigFactory;
 import scala.concurrent.duration.Duration;
 
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;//Todo:Inspection
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -125,13 +120,6 @@ public class NodeApp {
 
 
 				}
-
-				/*for (int i=0; i < items.size(); i++){
-					System.out.println("KEY = "+items.get(i).key+" VALUE = "+items.get(i).value+
-							" VERSION = " +items.get(i).version);
-				}
-				*/
-
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -145,16 +133,13 @@ public class NodeApp {
 	private static void initializeStorageFile (Map<Integer, Item> items){
 
 		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		Path file = Paths.get(storagePath);
-
-		List<String> lines = new ArrayList<String>();
-		for (Integer i : items.keySet()){
-			lines.add(items.get(i).toString());
-		}		
-
 		try{
-			Files.write(file, lines,  Charset.forName("UTF-8"));
-		}catch (IOException e){
+		    PrintWriter writer = new PrintWriter(storagePath, "UTF-8");
+		    for (Item i : items.values()){
+			    writer.println(i.toString());
+		    }
+		    writer.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -162,16 +147,14 @@ public class NodeApp {
 	private static void appendItemToStorageFile(Item item){
 	
 		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		Path file = Paths.get(storagePath);
-
-		List<String> lines = new ArrayList<String>();
-		lines.add(item.toString());		
-
-		try{
-			Files.write(file, lines,  Charset.forName("UTF-8"), StandardOpenOption.APPEND);
-		}catch (IOException e){
-			e.printStackTrace();
-		}
+		try(FileWriter fw = new FileWriter(storagePath, true);
+			    BufferedWriter bw = new BufferedWriter(fw);
+			    PrintWriter out = new PrintWriter(bw))
+			{
+			    out.println(item.toString());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	}
 	
 	private static void updateLocalStorage(Map<Integer,Item> items){
@@ -263,9 +246,7 @@ public class NodeApp {
 		return newResponsibleNodes;
 	}
 
-
-	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
-	//TODO: test it
+	// removes items for which the node is not responsible anymore (e.g. upon recovery of the node)
 	private static void notResposibleItemRemove(Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
 
 		boolean doRewrite = false;
@@ -282,7 +263,7 @@ public class NodeApp {
 				doRewrite = true;
 			}
 		}
-		//TODO: how to update local storage
+
 		if (doRewrite) {
 			updateLocalStorage(items);
 		}
@@ -320,7 +301,7 @@ public class NodeApp {
 			this.items = items;
 		}
 		
-        void setReadTimeout(int time, Integer itemKey) {
+        void setReadTimeout(Integer itemKey, int time) {
     		getContext().system().scheduler().scheduleOnce(
     				Duration.create(time, TimeUnit.SECONDS),	
     				getSelf(),
@@ -329,7 +310,7 @@ public class NodeApp {
     				);
     	}
 
-	    void setWriteTimeout(int time, Integer itemKey) {
+	    void setWriteTimeout(Integer itemKey, int time) {
 		    getContext().system().scheduler().scheduleOnce(
 				    Duration.create(time, TimeUnit.SECONDS),
 				    getSelf(),
@@ -495,27 +476,7 @@ public class NodeApp {
 						
 						pendingReadRequest = null;
 					}
-					/*
-					if (itemRead != null){
-						pendingReadRequest.setLatestItem(itemRead); //and increment counter
-						if (pendingReadRequest.getCounter() == R){
-							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItem()), getSelf());
-							pendingReadRequest = null;
-							
-							System.out.println("Read serviced to Client with value: " + itemRead.toString());
-							goBackToTerminal();
-
-						}
-					} else{  // this means that the item does not exist in the system
-						if (pendingReadRequest.getCounter() == 0){
-							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItemKey(), false), getSelf());
-						}
-			
-						System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
-						goBackToTerminal();
-
-						pendingReadRequest = null;						
-					}*/
+					
 				}
 			}
 			else if (message instanceof Message.ReadTimeout){ 	// timeout for read has been hit
@@ -578,7 +539,6 @@ public class NodeApp {
 					if (pendingWriteRequest.getCounter() == Math.max(R,W)){
 						
 						latestItem = pendingWriteRequest.getItem();
-						//itemToWrite.setValue(latestItem.getValue());
 						if (latestItem != null){
 							itemToWrite.setVersion(latestItem.getVersion()+1);
 							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true,false), getSelf());
@@ -610,47 +570,7 @@ public class NodeApp {
 						//For the next request
 						pendingWriteRequest = null;
 					}
-					
-					
-					/*
-					if (item != null){
-						pendingWriteRequest.setLatestItem(item);
-						if (pendingWriteRequest.getCounter() == Math.max(R,W)){
-							latestItem = pendingWriteRequest.getItem();
-							//itemToWrite.setValue(latestItem.getValue());
-							itemToWrite.setVersion(latestItem.getVersion()+1);
-							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true,false), getSelf());
-
-
-
-							System.out.println("Item : " + itemToWrite.toString() + " updated");
-							for (int i : responsibleNodesForWrite){
-								ActorRef a = nodes.get(i);
-								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
-							}
-
-							goBackToTerminal();
-
-							//For the next request
-							pendingWriteRequest = null;
-						}
-					}
-					else{
-						pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
-								getSelf());
-						System.out.println("Item : " + itemToWrite.toString() + " created");
-
-						for (int i : responsibleNodesForWrite){
-							ActorRef a = nodes.get(i);
-							a.tell(new Message.CoordToNodeDoWrite(itemToWrite,false), getSelf());
-						}
-
-						goBackToTerminal();
-
-						//For the next request
-						pendingWriteRequest = null;
-					}*/
-					
+									
 				}
 			}
 			else if (message instanceof  Message.CoordToNodeDoWrite){
