@@ -390,7 +390,7 @@ public class NodeApp {
 
 				
 			}
-			else if (message instanceof Message.LeaveMessage){ // a client just told me to leave the network
+			else if (message instanceof Message.Leave){ // a client just told me to leave the network
 				System.out.println("Received leave msg");
 				for (ActorRef n : nodes.values()) {
 					if(!n.equals(getSelf())){

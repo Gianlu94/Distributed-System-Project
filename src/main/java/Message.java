@@ -65,7 +65,7 @@ public class Message {
 	}
 
 	//message sent by the client to node
-	public static class LeaveMessage implements Serializable {}
+	public static class Leave implements Serializable {}
 
 	public static class MessageRead implements Serializable{
 		Integer itemKey = null;

@@ -52,7 +52,7 @@ public class Client {
 	    
         public void onReceive(Object message) {
         	if(message instanceof DoLeave){
-        		getContext().actorSelection(remotePath).tell(new Message.LeaveMessage(), getSelf());
+        		getContext().actorSelection(remotePath).tell(new Message.Leave(), getSelf());
         	} 
         	else if(message instanceof DoRead){
         		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(((DoRead) message).itemKey), getSelf());
