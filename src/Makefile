@@ -12,7 +12,7 @@ export AKKA_CLASSPATH
 #------COMPILE------
 
 compileAll:
-	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)NodeApp.java $(CPATH)Item.java $(CPATH)PendingOperation.java $(CPATH)PendingRead.java  $(CPATH)PendingWrite.java
+	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)NodeApp.java $(CPATH)Item.java $(CPATH)PendingOperation.java $(CPATH)PendingRead.java  $(CPATH)PendingWrite.java $(CPATH)Utilities.java
 	
 compileClient:
 	@$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Client.java $(CPATH)Message.java $(CPATH)Item.java
@@ -34,6 +34,9 @@ compilePendingRead:
 
 compileItemPendingWrite:
 	 @$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)PendingWrite.java
+	 
+compileUtilities:
+	 @$(JAVAC) -cp $(AKKA_CLASSPATH) $(CPATH)Utilities.java
 	
 #------DELETE------
 
@@ -60,6 +63,9 @@ deletePendingRead:
 	
 deletePendingWrite:
 	@rm $(CPATH)PendingWrite*.class
+	
+deleteUtilities:
+	@rm $(CPATH)Utilities*.class
 
 #----RUN NODES
 
@@ -79,7 +85,8 @@ runNode7:
 	@cd $(PATHTONODE)/7 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 
 		
-#----RUN CLIENT	
+#----RUN CLIENTS
+
 runClient0:
 	@cd $(PATHTOCLIENT)/0 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
 	

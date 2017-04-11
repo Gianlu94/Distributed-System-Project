@@ -1,5 +1,7 @@
 PATHTOSRC = ./src/
 
+#------COMPILE------
+
 compileAll:
 	@make -C $(PATHTOSRC) -s  compileAll
 	
@@ -23,6 +25,9 @@ compilePendingRead:
 
 compileItemPendingWrite:
 	@make -C $(PATHTOSRC) -s  compileItemPendingWrite
+	
+compileUtilities:
+	@make -C $(PATHTOSRC) -s compileUtilities
 	
 #------DELETE------
 
@@ -49,6 +54,9 @@ deletePendingRead:
 	
 deletePendingWrite:
 	@make -C $(PATHTOSRC) -s  deletePendingWrite
+	
+deleteUtilities:
+	@make -C $(PATHTOSRC) -s  deleteUtilities
 
 #----RUN NODES
 
@@ -68,7 +76,8 @@ runNode7:
 	@make -C $(PATHTOSRC) -s runNode7
 
 		
-#----RUN CLIENT	
+#----RUN CLIENTS
+
 runClient0:
 	@make -C $(PATHTOSRC) -s runClient0
 	

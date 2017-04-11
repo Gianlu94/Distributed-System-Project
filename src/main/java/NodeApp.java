@@ -19,11 +19,6 @@ public class NodeApp {
 
 
 
-	private static void goBackToTerminal(){
-		System.out.print(">> ");
-	}
-
-
 	/*
 		  Terminal to receive node commands
 	   */
@@ -74,91 +69,6 @@ public class NodeApp {
 				}
 			}
 		}
-	}
-
-	/*
-		This method is responsible to load local storage of the node
-		TODO: replace e.printStackTrace with something else (e.g. Log.e)
-	 */
-	private static void loadItems(Map<Integer,Item> items){
-		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		File localStorage = new File(storagePath);
-		FileReader reader = null;
-		BufferedReader buffer;
-		String item;
-		String tokensItem[]; //when reading an item from the file you get a string
-		Integer itemKey;
-
-		if (!localStorage.exists()){ //check if file exists
-			try {
-				localStorage.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		else{
-			//start reading operation
-			try {
-				reader = new FileReader(storagePath);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			buffer = new BufferedReader(reader);
-			try {
-				item = buffer.readLine();
-				while (item!= null){
-					tokensItem = item.split("\\s+"); //split string according space
-
-					itemKey = Integer.parseInt(tokensItem[0]);
-					//put the item in items hashmap
-					items.put(itemKey,new Item(itemKey,
-														tokensItem[1],
-														Integer.parseInt(tokensItem[2])));
-
-					//read next item in the file
-					item = buffer.readLine();
-
-
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-
-		}
-
-	}
-
-	// initialize storage file and add items
-	private static void initializeStorageFile (Map<Integer, Item> items){
-
-		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		try{
-		    PrintWriter writer = new PrintWriter(storagePath, "UTF-8");
-		    for (Item i : items.values()){
-			    writer.println(i.toString());
-		    }
-		    writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private static void appendItemToStorageFile(Item item){
-	
-		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		try(FileWriter fw = new FileWriter(storagePath, true);
-			    BufferedWriter bw = new BufferedWriter(fw);
-			    PrintWriter out = new PrintWriter(bw))
-			{
-			    out.println(item.toString());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-	}
-	
-	private static void updateLocalStorage(Map<Integer,Item> items){
-		initializeStorageFile(items);
 	}
 
 	public static void doJoin (String ip, String port){
@@ -265,7 +175,7 @@ public class NodeApp {
 		}
 
 		if (doRewrite) {
-			updateLocalStorage(items);
+			Utilities.updateLocalStorage(myId,items);
 		}
 	}
 
@@ -291,13 +201,13 @@ public class NodeApp {
     			getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('j'), getSelf());
 			}
 			nodes.put(myId, getSelf());
-			loadItems(items);
+			Utilities.loadItems(myId,items);
 
 		}
 
 		
 		private void initializeItemList(Map<Integer, Item> items){
-			initializeStorageFile(items);
+			Utilities.initializeStorageFile(myId,items);
 			this.items = items;
 		}
 		
@@ -323,7 +233,7 @@ public class NodeApp {
 			if (crashed && !(message instanceof Message.Nodelist) &&
 					!(message instanceof Message.RequestRecovery) && !(message instanceof ReceiveTimeout)){
 				System.out.println("Dropped msg");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 				return;
 			}
 			if (message instanceof Message.RequestNodelist) {
@@ -334,7 +244,7 @@ public class NodeApp {
 				else if (typeOfRequest == 'r'){
 					System.out.println("[RECOVERY] Received request nodes list from node "+ getSender().toString());
 				}
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 				getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
 			}
 			else if (message instanceof Message.Nodelist) {
@@ -353,7 +263,7 @@ public class NodeApp {
 					items = new HashMap<Integer, Item>();
 
 					nodes.putAll(msg.getNodeList());
-					loadItems(items);
+					Utilities.loadItems(myId, items);
 
 					notResposibleItemRemove(nodes,items);
 					crashed = false;
@@ -363,7 +273,7 @@ public class NodeApp {
 			else if (message instanceof Message.Join) {
 				int id = ((Message.Join)message).id;
 				System.out.println("Node " + id + " joined");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 				nodes.put(id, getSender());
 				notResposibleItemRemove(nodes,items);
 
@@ -412,18 +322,18 @@ public class NodeApp {
 				nodes.put(myId, getSelf());
 				
 				System.out.println("Node has been removed from the network");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof Message.LeavingAnnouncement){ // a node just told me that it is about to leave
 				nodes.remove(((Message.LeavingAnnouncement)message).getId());
 				System.out.println("Node " + ((Message.LeavingAnnouncement)message).getId() + " left");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 
 			}
 			else if (message instanceof Message.UpdateAfterLeaving){ 					//a node just sent me the list of items it
 				List<Item> newItems = ((Message.UpdateAfterLeaving)message).getItemsList();	//had, which now I am responsible for
 				for (Item item : newItems){
-					appendItemToStorageFile(item);
+					Utilities.appendItemToStorageFile(myId,item);
 					items.put(item.getKey(), item);
 				}
 			}
@@ -446,10 +356,10 @@ public class NodeApp {
 				
 				if (item != null){
 					System.out.println("Read sent to Coordinator with value: " + item.toString());
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				} else {
 					System.out.println("Item to be read " + itemKey + " does not exist");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				}
 			}
 			else if (message instanceof Message.ReadReplyToCoord){ 	// node is replying to one of my read requests
@@ -468,10 +378,10 @@ public class NodeApp {
 
 						if (pendingReadRequest.getItem() != null){
 							System.out.println("Read serviced to Client with value: " + itemRead.toString());
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 						} else {
 							System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 						}
 						
 						pendingReadRequest = null;
@@ -485,7 +395,7 @@ public class NodeApp {
 					pendingReadRequest = null;
 					
 					System.out.println("Read unsuccessful, Timeout has been hit");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 
 				}
 			}
@@ -512,7 +422,7 @@ public class NodeApp {
 						a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
 					}
 				}
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof  Message.CoordToNodeWriteRequest){
 				Message.CoordToNodeWriteRequest msg = (Message.CoordToNodeWriteRequest)message;
@@ -523,10 +433,10 @@ public class NodeApp {
 
 				if (item == null){
 					System.out.println("Items is not present: creation......");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				} else {
 					System.out.println("Item " + itemKey + ": updating..... ");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				}
 			}
 			else if (message instanceof  Message.WriteReplyToCoord){
@@ -551,7 +461,7 @@ public class NodeApp {
 								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
 							}
 
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 							
 						}else{
 							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
@@ -563,7 +473,7 @@ public class NodeApp {
 								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,false), getSelf());
 							}
 
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 
 						}
 
@@ -587,9 +497,9 @@ public class NodeApp {
 
 				items.put(receivedItem.getKey(),receivedItem);
 
-				updateLocalStorage(items);
+				Utilities.updateLocalStorage(myId,items);
 
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof Message.RequestRecovery){
 				getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('r'), getSelf());
@@ -603,14 +513,14 @@ public class NodeApp {
 					pendingWriteRequest = null;
 
 					System.out.println("Write unsuccessful, Timeout has been hit");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 
 				}
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
 				System.out.println("ERROR: Failed to contact node "+remotePath);
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 
 			}
 			else
