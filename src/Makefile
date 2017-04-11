@@ -101,6 +101,41 @@ runClient3:
 	
 runClient4:
 	@cd $(PATHTOCLIENT)/4 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHTOCLIENTCLASS) Client
+	
+#----HELP 
+help:
+	@echo "\n\n--------------LIST OF COMMANDS---------------\n"
+	@echo "\n ---COMPILE--- \n"
+	@echo "\n   compileAll: compile project\n"
+	@echo "\n   compileClient: compile client class\n"
+	@echo "\n   compileNode: compile Node class\n"
+	@echo "\n   compileMessage: compile Message class\n"
+	@echo "\n   compileItem: compile Item class\n"
+	@echo "\n   compilePendingOperation: compile PendingOperation class\n"
+	@echo "\n   compilePendingRead: compile PendingRead class\n"
+	@echo "\n   compilePendingWrite: compile PendingOperation class\n"
+	@echo "\n   compileUtilities: compile Utilities class\n"
+	
+	@echo "\n ---DELETE--- \n"
+	@echo "\n   deleteAll: delete class files\n"
+	@echo "\n   deleteClient: delete client class\n"
+	@echo "\n   deleteNode: delete Node class\n"
+	@echo "\n   deleteMessage: delete Message class\n"
+	@echo "\n   deleteItem: delete Item class\n"
+	@echo "\n   deletePendingOperation: delete PendingOperation class\n"
+	@echo "\n   deletePendingRead: delete PendingRead class\n"
+	@echo "\n   deletePendingWrite: delete PendingOperation class\n"
+	@echo "\n   deleteUtilities: delete Utilities class\n"
+	
+	@echo "\n ---RUNNODES--- \n"
+	@echo "\n   runNode<i>: run Node i-th (i = {0,1,2,3,7})\n"
+	
+	@echo "\n ---RUNCLIENTS--- \n"
+	@echo "\n   runClient<i>: run Client i-th (i = {0,1,2,3,4})\n"
+	
+	
+	
+	
 
 
 
