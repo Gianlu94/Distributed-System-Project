@@ -95,4 +95,10 @@ runClient3:
 	
 runClient4:
 	@make -C $(PATHTOSRC) -s runClient4
+	
+#----HELP
+help:
+	@make -C $(PATHTOSRC) -s help
+
+
 
