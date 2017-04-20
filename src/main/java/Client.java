@@ -21,26 +21,93 @@ public class Client {
 	static private int myId; // ID of the local node
     static private ActorRef clientActor;
 
-    
-    public static void sendLeave (String ip, String port){
 
-		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
-		clientActor.tell(new DoLeave(), null);
+	/*
+		Terminal to receive client commands
+	 */
+	private static void terminal(){
 
+		Scanner input; //to receive keyboard input stream
+		String inputCommand;
+		String [] tokensInput; //split command in tokens
+		Integer tokensNumber;
+		Integer keyItem;
+
+		input = new Scanner(System.in);
+		while (true){
+			System.out.print(">> ");
+			inputCommand = input.nextLine();
+			tokensInput = inputCommand.split(" ");
+			tokensNumber = tokensInput.length;
+
+			switch (tokensInput[0].toLowerCase()){
+				case "e":
+				case "exit":
+					System.exit(0);
+				case "java":
+					if ((tokensInput.length < 5) || (tokensNumber > 7)){
+						System.out.println("ERROR: Number of parameters wrong");
+					}
+					else if(tokensInput[1].toLowerCase().equals("client")){
+						switch(tokensInput[4].toLowerCase()){
+							case "read":
+								try{
+									keyItem = Integer.valueOf(tokensInput[5]);
+								}catch(Exception e){
+									System.out.println("ERROR: Key not correct");
+									break;
+								}
+								sendRead(tokensInput[2],tokensInput[3], keyItem);
+								break;
+							case "write":
+								try{
+									keyItem = Integer.valueOf(tokensInput[5]);
+								}catch(Exception e){
+									System.out.println("ERROR: Key not correct"); //TODO:we can define an utility functtion to check it
+									break;
+								}
+								sendWrite(tokensInput[2],tokensInput[3],keyItem,tokensInput[6]);
+								break;
+							case "leave":
+								sendLeave(tokensInput[2],tokensInput[3]);
+								break;
+							default:
+								System.out.println("ERROR: command unknown");
+								break;
+
+						}
+
+					}
+					else{
+						System.out.println("ERROR: command unknown");
+					}
+					break;
+				default:
+					System.out.println("ERROR: No commands or command unknown");
+					break;
+
+			}
+
+
+		}
 	}
 
-    public static void sendRead (String ip, String port, Integer itemKey){
-
+    public static void sendLeave (String ip, String port){
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
-		clientActor.tell(new DoRead(itemKey), null);
+		clientActor.tell(new Message.DoLeave(), null);
+	}
+
+
+    public static void sendRead (String ip, String port, Integer itemKey){
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		clientActor.tell(new Message.DoRead(itemKey), null);
 
 	}
 
 	//tell to the client to send a write request
 	public static void sendWrite (String ip, String port, Integer itemKey, String value){
-
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
-		clientActor.tell(new DoWrite(itemKey,value), null);
+		clientActor.tell(new Message.DoWrite(itemKey,value), null);
 
 	}
 
@@ -51,14 +118,15 @@ public class Client {
 		}
 	    
         public void onReceive(Object message) {
-        	if(message instanceof DoLeave){
-        		getContext().actorSelection(remotePath).tell(new Message.LeaveMessage(), getSelf());
-        	} 
-        	else if(message instanceof DoRead){
-        		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(((DoRead) message).itemKey), getSelf());
+        	if(message instanceof Message.DoLeave){
+        		getContext().actorSelection(remotePath).tell(new Message.Leave(), getSelf());
         	}
-        	else if(message instanceof DoWrite){
-		        DoWrite msg = (DoWrite) message;
+        	else if(message instanceof Message.DoRead){
+        		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(
+        				((Message.DoRead) message).itemKey), getSelf());
+        	}
+        	else if(message instanceof Message.DoWrite){
+		        Message.DoWrite msg = (Message.DoWrite) message;
 		        getContext().actorSelection(remotePath).tell(new Message.ClientToCoordWriteRequest(msg.itemKey,msg.value),getSelf());
 	        }
         	else if(message instanceof Message.ReadReplyToClient){
@@ -76,7 +144,9 @@ public class Client {
 
         			}
         		}
-    			goBackToTerminal();
+
+        		//Client exits after receiving response
+		        System.exit(0);
         	}
         	else if (message instanceof Message.WriteReplyToClient){
 		        Message.WriteReplyToClient msg = (Message.WriteReplyToClient)message;
@@ -91,12 +161,16 @@ public class Client {
 			        System.out.println("System did not manage to compute the write request for the item: " +
 					        msg.itemKey + " "+msg.value +" because Timeout was hit");
 		        }
-		        goBackToTerminal();
+
+		        //Client exits after receiving response
+		        System.exit(0);
 	        }
 	        else if (message instanceof Message.rejectWrite){
 		        Message.rejectWrite msg = (Message.rejectWrite)message;
 		        System.out.println("Write rejected: network with less than of "+msg.N +" nodes" );
-		        goBackToTerminal();
+
+		        //Client exits after receiving response
+		        System.exit(0);
 	        }
 	        else {
 		        unhandled(message);
@@ -104,165 +178,18 @@ public class Client {
         }
     }
 
-	
-	public static class DoLeave implements Serializable {}
-	
-	public static class DoRead implements Serializable {
-		Integer itemKey;
-		
-		public DoRead(Integer itemKey) {
-			super();
-			this.itemKey = itemKey;
-		}
-		
-	}
 
-	public static class DoWrite implements Serializable {
-		Integer itemKey;
-		String value;
-
-		public DoWrite(Integer itemKey, String value) {
-			super();
-			this.itemKey = itemKey;
-			this.value = value;
-		}
-
-	}
-
-
-	private static void goBackToTerminal(){
-		System.out.print(">> ");
-	}
-	
-    /*
-        Terminal to receive client commands
-     */
-    private static void terminal(){
-
-	    Scanner input; //to receive keyboard input stream
-	    String inputCommand;
-	    String [] tokensInput; //split command in tokens
-	    Integer tokensNumber;
-	    Integer keyItem;
-
-	    input = new Scanner(System.in);
-	    while (true){
-		    System.out.print(">> ");
-		    inputCommand = input.nextLine();
-		    tokensInput = inputCommand.split(" ");
-			tokensNumber = tokensInput.length;
-
-		    switch (tokensInput[0].toLowerCase()){
-			    case "e":
-			    case "exit":
-			    	System.exit(0);
-			    case "java":
-				    if ((tokensInput.length < 5) || (tokensNumber > 7)){
-					    System.out.println("ERROR: Number of parameters wrong");
-				    }
-				    else if(tokensInput[1].toLowerCase().equals("client")){
-					    System.out.println("*****"+tokensInput[4].toLowerCase());
-					    switch(tokensInput[4].toLowerCase()){
-						    case "read":
-						    	    try{
-								        keyItem = Integer.valueOf(tokensInput[5]);
-							        }catch(Exception e){
-								        System.out.println("ERROR: Key not correct");
-								        break;
-							        }
-							        sendRead(tokensInput[2],tokensInput[3], keyItem);
-						    	    break;
-						    case "write":
-							        try{
-								        keyItem = Integer.valueOf(tokensInput[5]);
-							        }catch(Exception e){
-								        System.out.println("ERROR: Key not correct"); //TODO:we can define an utility functtion to check it
-								        break;
-							        }
-							        sendWrite(tokensInput[2],tokensInput[3],keyItem,tokensInput[6]);
-						    	break;
-						    case "leave":
-							    //System.out.println("****"+tokensInput[2].toLowerCase());
-						    	sendLeave(tokensInput[2],tokensInput[3]);
-						    	break;
-						    default:
-						    	System.out.println("ERROR: command unknown");
-							    break;
-
-					    }
-
-				    }
-				    else{
-					    System.out.println("ERROR: command unknown");
-				    }
-				    break;
-			    default:
-			    	System.out.println("ERROR: No commands or command unknown");
-				    break;
-
-
-		    }
-
-
-	    }
-    }
-	
-	private static boolean ping (String address, String port, int timeout){
-		SocketAddress sockaddr = new InetSocketAddress(address, Integer.parseInt(port));
-		Socket socket = new Socket();
-		boolean online = true;
-		try {
-			socket.connect(sockaddr, timeout);
-		} catch (SocketTimeoutException stex) {
-			// treating timeout errors separately from other io exceptions
-			// may make sense
-			online=false;
-		} catch (IOException iOException) {
-			online = false;    
-		} finally {
-			try {
-				socket.close();
-			} catch (IOException ex) {
-			}
-
-		}
-		return online;
-	}
-
-
-	//TO LAUNCH NODE APP FROM NODE CONFIGURATION FOLDER USE:
-	//java -cp $AKKA_CLASSPATH:.:../../../ main.java.Client
     public static void main(String[] args) {
-	    //Config config = ConfigFactory.load("client");
-	    File clientFile = new File("./main/resources/client.conf");
+	    File clientFile = new File("client.conf");
 	    Config clientConfig = ConfigFactory.parseFile(clientFile);
 	    final ActorSystem system;
-
-	    /*
-		if (!(args.length >= 3 && args.length <= 5)) {
-			System.out.println("Wrong number of arguments: [remote_ip remote_port]");
-			return;
-		}
-		
-		String ip = args[0];
-		String port = args[1];
-		boolean online = ping(ip, port, 10000);
-		if (!online){
-			System.out.println("Node with address: " + ip + ":" + port + " not reachable");
-		} else {			
-		}
-		*/
 
 	    system = ActorSystem.create("client_system", clientConfig);
 
 	    clientActor = system.actorOf(Props.create(Node.class),"client");
 
+	    //call client terminal
 	    terminal();
-
-
-
-
-
 		
     }
 }

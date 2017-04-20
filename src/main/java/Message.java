@@ -64,8 +64,22 @@ public class Message {
 		}
 	}
 
+	//message sent to current client to start leaving operation
+	public static class DoLeave implements Serializable {}
+
 	//message sent by the client to node
-	public static class LeaveMessage implements Serializable {}
+	public static class Leave implements Serializable {}
+
+	//message sent by the client to node
+	public static class DoRead implements Serializable {
+		Integer itemKey;
+
+		public DoRead(Integer itemKey) {
+			super();
+			this.itemKey = itemKey;
+		}
+
+	}
 
 	public static class MessageRead implements Serializable{
 		Integer itemKey = null;
@@ -124,12 +138,24 @@ public class Message {
 			//this.itemKey = itemKey;
 		}
 
-		//Integer itemKey;
 	}
 
 	/*
 		---- HERE ARE DEFINED THE MSGs RELATED TO WRITE---
 	*/
+
+	//message sent to the current client to start write operation
+	public static class DoWrite implements Serializable {
+		Integer itemKey;
+		String value;
+
+		public DoWrite(Integer itemKey, String value) {
+			super();
+			this.itemKey = itemKey;
+			this.value = value;
+		}
+
+	}
 
 	public static class MessageWrite implements Serializable{
 		Integer itemKey;
@@ -215,7 +241,19 @@ public class Message {
 
 		//Integer itemKey;
 	}
-	
+
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO RECOVERY---
+	*/
+
+	public static class RequestRecovery{
+		public RequestRecovery(){
+
+		}
+	}
+
+
+
 	//send this msg in order to tell the other nodes that the node is leaving
 	public static class LeavingAnnouncement implements Serializable {
 		private int id;

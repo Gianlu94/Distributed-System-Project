@@ -7,11 +7,6 @@ import com.typesafe.config.ConfigFactory;
 import scala.concurrent.duration.Duration;
 
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;//Todo:Inspection
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -20,12 +15,8 @@ public class NodeApp {
 	static private int myId; // ID of the local node
 	static int N, R, W, T; // parameters replication number, read quorum, write quorum and timeout
 	static private ActorRef receiver;
+	static private Boolean crashed;
 
-
-
-	private static void goBackToTerminal(){
-		System.out.print(">> ");
-	}
 
 
 	/*
@@ -36,7 +27,8 @@ public class NodeApp {
 		String inputCommand;
 		String [] tokensInput; //split command in tokens
 		Integer tokensNumber;
-
+		String firstCommand;
+		crashed = false;
 
 		input = new Scanner(System.in);
 		while (true) {
@@ -44,23 +36,30 @@ public class NodeApp {
 			inputCommand = input.nextLine();
 			tokensInput = inputCommand.split(" ");
 
-			if (tokensInput[0].toLowerCase().equals("e")){
+			firstCommand = tokensInput[0].toLowerCase();
+			if (firstCommand.equals("e")) {
 				System.exit(0); // for us remember to remove it
 			}
-			if (tokensInput.length != 5){
+			else if (firstCommand.equals("crash")){
+				crashed = true; //crashed state setted
+			}
+
+			if ((tokensInput.length != 5) && (tokensInput.length != 1)){
 				System.err.println("ERROR: Wrong number of parameters");
 			}
 			else{
-				if ((tokensInput[0].toLowerCase().equals("java"))&&
+				if ((firstCommand.equals("java"))&&
 				(tokensInput[1].toLowerCase().equals("node"))){
 
 					switch (tokensInput[2].toLowerCase()){
 						case "join":
 							//System.out.println("ERROR: Not implemented yet");
-							doJoin(tokensInput[3].toLowerCase(),tokensInput[4].toLowerCase());
+							if (crashed != true) {
+								doJoin(tokensInput[3].toLowerCase(), tokensInput[4].toLowerCase());
+							}
 							break;
 						case "recover":
-							System.out.println("ERROR: Not implemented yet");
+								doRecovery(tokensInput[3].toLowerCase(), tokensInput[4].toLowerCase());
 							break;
 						default:
 							System.err.println("ERROR: unknown command");
@@ -72,107 +71,18 @@ public class NodeApp {
 		}
 	}
 
-	/*
-		This method is responsible to load local storage of the node
-		TODO: replace e.printStackTrace with something else (e.g. Log.e)
-	 */
-	private static void loadItems(Map<Integer,Item> items){
-		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		File localStorage = new File(storagePath);
-		FileReader reader = null;
-		BufferedReader buffer;
-		String item;
-		String tokensItem[]; //when reading an item from the file you get a string
-		Integer itemKey;
-
-		if (!localStorage.exists()){ //check if file exists
-			try {
-				localStorage.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		else{
-			//start reading operation
-			try {
-				reader = new FileReader(storagePath);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			buffer = new BufferedReader(reader);
-			try {
-				item = buffer.readLine();
-				while (item!= null){
-					tokensItem = item.split("\\s+"); //split string according space
-
-					itemKey = Integer.parseInt(tokensItem[0]);
-					//put the item in items hashmap
-					items.put(itemKey,new Item(itemKey,
-														tokensItem[1],
-														Integer.parseInt(tokensItem[2])));
-
-					//read next item in the file
-					item = buffer.readLine();
-
-
-				}
-
-				/*for (int i=0; i < items.size(); i++){
-					System.out.println("KEY = "+items.get(i).key+" VALUE = "+items.get(i).value+
-							" VERSION = " +items.get(i).version);
-				}
-				*/
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-
-		}
-
-	}
-
-	// initialize storage file and add items
-	private static void initializeStorageFile (Map<Integer, Item> items){
-
-		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		Path file = Paths.get(storagePath);
-
-		List<String> lines = new ArrayList<String>();
-		for (Integer i : items.keySet()){
-			lines.add(items.get(i).toString());
-		}		
-
-		try{
-			Files.write(file, lines,  Charset.forName("UTF-8"));
-		}catch (IOException e){
-			e.printStackTrace();
-		}
-	}
-
-	private static void appendItemToStorageFile(Item item){
-	
-		String storagePath = "./"+myId+"myLocalStorage.txt"; //path to file
-		Path file = Paths.get(storagePath);
-
-		List<String> lines = new ArrayList<String>();
-		lines.add(item.toString());		
-
-		try{
-			Files.write(file, lines,  Charset.forName("UTF-8"), StandardOpenOption.APPEND);
-		}catch (IOException e){
-			e.printStackTrace();
-		}
-	}
-	
-	private static void updateLocalStorage(Map<Integer,Item> items){
-		initializeStorageFile(items);
-	}
-
 	public static void doJoin (String ip, String port){
 
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
 		receiver.tell(new Message.RequestJoin()  ,null);
+
+
+	}
+
+	public static void doRecovery (String ip, String port){
+
+		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+		receiver.tell(new Message.RequestRecovery()  ,null);
 
 
 	}
@@ -246,10 +156,8 @@ public class NodeApp {
 		return newResponsibleNodes;
 	}
 
-
-	//TODO: insert a method to return an arraylist of keys to avoid duplicate code
-	//TODO: test it
-	private static void itemsAfterJoin (Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
+	// removes items for which the node is not responsible anymore (e.g. upon recovery of the node)
+	private static void notResposibleItemRemove(Map<Integer,ActorRef> nodes, Map<Integer,Item> items){
 
 		boolean doRewrite = false;
 		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
@@ -265,9 +173,9 @@ public class NodeApp {
 				doRewrite = true;
 			}
 		}
-		//TODO: how to update local storage
+
 		if (doRewrite) {
-			updateLocalStorage(items);
+			Utilities.updateLocalStorage(myId,items);
 		}
 	}
 
@@ -293,17 +201,17 @@ public class NodeApp {
     			getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('j'), getSelf());
 			}
 			nodes.put(myId, getSelf());
-			loadItems(items);
+			Utilities.loadItems(myId,items);
 
 		}
 
 		
 		private void initializeItemList(Map<Integer, Item> items){
-			initializeStorageFile(items);
+			Utilities.initializeStorageFile(myId,items);
 			this.items = items;
 		}
 		
-        void setReadTimeout(int time, Integer itemKey) {
+        void setReadTimeout(Integer itemKey, int time) {
     		getContext().system().scheduler().scheduleOnce(
     				Duration.create(time, TimeUnit.SECONDS),	
     				getSelf(),
@@ -312,7 +220,7 @@ public class NodeApp {
     				);
     	}
 
-	    void setWriteTimeout(int time, Integer itemKey) {
+	    void setWriteTimeout(Integer itemKey, int time) {
 		    getContext().system().scheduler().scheduleOnce(
 				    Duration.create(time, TimeUnit.SECONDS),
 				    getSelf(),
@@ -322,29 +230,52 @@ public class NodeApp {
 	    }
 		
         public void onReceive(Object message) {
+			if (crashed && !(message instanceof Message.Nodelist) &&
+					!(message instanceof Message.RequestRecovery) && !(message instanceof ReceiveTimeout)){
+				System.out.println("Dropped msg");
+				Utilities.goBackToTerminal();
+				return;
+			}
 			if (message instanceof Message.RequestNodelist) {
 				typeOfRequest = ((Message.RequestNodelist) message).typeOfRequest;
 				if(typeOfRequest == 'j'){
-					getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
+					System.out.println("[JOIN] Received request nodes list from node "+ getSender().toString());
 				}
+				else if (typeOfRequest == 'r'){
+					System.out.println("[RECOVERY] Received request nodes list from node "+ getSender().toString());
+				}
+				Utilities.goBackToTerminal();
+				getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
 			}
 			else if (message instanceof Message.Nodelist) {
+				Message.Nodelist msg = (Message.Nodelist) message;
 				typeOfRequest = ((Message.Nodelist) message).getTypeOfRequest();
+				getContext().setReceiveTimeout(Duration.Undefined());
 				if(typeOfRequest == 'j') {
-					getContext().setReceiveTimeout(Duration.Undefined());
-					nodes.putAll(((Message.Nodelist) message).getNodeList());
+					nodes.putAll(msg.getNodeList());
 					
 					ActorRef nextNode = identifyNextNode(nodes);
 					nextNode.tell(new Message.RequestItems(), getSelf());
+
+				}
+				else if (typeOfRequest == 'r'){
+					nodes = new HashMap<Integer, ActorRef>();
+					items = new HashMap<Integer, Item>();
+
+					nodes.putAll(msg.getNodeList());
+					Utilities.loadItems(myId, items);
+
+					notResposibleItemRemove(nodes,items);
+					crashed = false;
 
 				}
 			}
 			else if (message instanceof Message.Join) {
 				int id = ((Message.Join)message).id;
 				System.out.println("Node " + id + " joined");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 				nodes.put(id, getSender());
-				itemsAfterJoin(nodes,items);
+				notResposibleItemRemove(nodes,items);
 
 			}
 			else if (message instanceof Message.RequestJoin){
@@ -358,7 +289,7 @@ public class NodeApp {
 
 			else if (message instanceof Message.ItemsList){ // received items i'm responsible for. initialize items and announce my presence
 				initializeItemList(((Message.ItemsList)message).getItemsList());
-				itemsAfterJoin(nodes, items);
+				notResposibleItemRemove(nodes, items);
 				
 				//announce to other nodes my presence
 				for (ActorRef n : nodes.values()) {
@@ -369,7 +300,7 @@ public class NodeApp {
 
 				
 			}
-			else if (message instanceof Message.LeaveMessage){ // a client just told me to leave the network
+			else if (message instanceof Message.Leave){ // a client just told me to leave the network
 				System.out.println("Received leave msg");
 				for (ActorRef n : nodes.values()) {
 					if(!n.equals(getSelf())){
@@ -391,18 +322,18 @@ public class NodeApp {
 				nodes.put(myId, getSelf());
 				
 				System.out.println("Node has been removed from the network");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof Message.LeavingAnnouncement){ // a node just told me that it is about to leave
 				nodes.remove(((Message.LeavingAnnouncement)message).getId());
 				System.out.println("Node " + ((Message.LeavingAnnouncement)message).getId() + " left");
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 
 			}
 			else if (message instanceof Message.UpdateAfterLeaving){ 					//a node just sent me the list of items it
 				List<Item> newItems = ((Message.UpdateAfterLeaving)message).getItemsList();	//had, which now I am responsible for
 				for (Item item : newItems){
-					appendItemToStorageFile(item);
+					Utilities.appendItemToStorageFile(myId,item);
 					items.put(item.getKey(), item);
 				}
 			}
@@ -425,10 +356,10 @@ public class NodeApp {
 				
 				if (item != null){
 					System.out.println("Read sent to Coordinator with value: " + item.toString());
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				} else {
 					System.out.println("Item to be read " + itemKey + " does not exist");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				}
 			}
 			else if (message instanceof Message.ReadReplyToCoord){ 	// node is replying to one of my read requests
@@ -447,35 +378,15 @@ public class NodeApp {
 
 						if (pendingReadRequest.getItem() != null){
 							System.out.println("Read serviced to Client with value: " + itemRead.toString());
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 						} else {
 							System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 						}
 						
 						pendingReadRequest = null;
 					}
-					/*
-					if (itemRead != null){
-						pendingReadRequest.setLatestItem(itemRead); //and increment counter
-						if (pendingReadRequest.getCounter() == R){
-							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItem()), getSelf());
-							pendingReadRequest = null;
-							
-							System.out.println("Read serviced to Client with value: " + itemRead.toString());
-							goBackToTerminal();
-
-						}
-					} else{  // this means that the item does not exist in the system
-						if (pendingReadRequest.getCounter() == 0){
-							pendingReadRequest.getClient().tell(new Message.ReadReplyToClient(pendingReadRequest.getItemKey(), false), getSelf());
-						}
-			
-						System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
-						goBackToTerminal();
-
-						pendingReadRequest = null;						
-					}*/
+					
 				}
 			}
 			else if (message instanceof Message.ReadTimeout){ 	// timeout for read has been hit
@@ -484,7 +395,7 @@ public class NodeApp {
 					pendingReadRequest = null;
 					
 					System.out.println("Read unsuccessful, Timeout has been hit");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 
 				}
 			}
@@ -511,7 +422,7 @@ public class NodeApp {
 						a.tell(new Message.CoordToNodeWriteRequest(itemKey), getSelf());
 					}
 				}
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof  Message.CoordToNodeWriteRequest){
 				Message.CoordToNodeWriteRequest msg = (Message.CoordToNodeWriteRequest)message;
@@ -522,10 +433,10 @@ public class NodeApp {
 
 				if (item == null){
 					System.out.println("Items is not present: creation......");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				} else {
 					System.out.println("Item " + itemKey + ": updating..... ");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 				}
 			}
 			else if (message instanceof  Message.WriteReplyToCoord){
@@ -538,7 +449,6 @@ public class NodeApp {
 					if (pendingWriteRequest.getCounter() == Math.max(R,W)){
 						
 						latestItem = pendingWriteRequest.getItem();
-						//itemToWrite.setValue(latestItem.getValue());
 						if (latestItem != null){
 							itemToWrite.setVersion(latestItem.getVersion()+1);
 							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true,false), getSelf());
@@ -551,7 +461,7 @@ public class NodeApp {
 								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
 							}
 
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 							
 						}else{
 							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
@@ -563,54 +473,14 @@ public class NodeApp {
 								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,false), getSelf());
 							}
 
-							goBackToTerminal();
+							Utilities.goBackToTerminal();
 
 						}
 
 						//For the next request
 						pendingWriteRequest = null;
 					}
-					
-					
-					/*
-					if (item != null){
-						pendingWriteRequest.setLatestItem(item);
-						if (pendingWriteRequest.getCounter() == Math.max(R,W)){
-							latestItem = pendingWriteRequest.getItem();
-							//itemToWrite.setValue(latestItem.getValue());
-							itemToWrite.setVersion(latestItem.getVersion()+1);
-							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite,true,false), getSelf());
-
-
-
-							System.out.println("Item : " + itemToWrite.toString() + " updated");
-							for (int i : responsibleNodesForWrite){
-								ActorRef a = nodes.get(i);
-								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
-							}
-
-							goBackToTerminal();
-
-							//For the next request
-							pendingWriteRequest = null;
-						}
-					}
-					else{
-						pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
-								getSelf());
-						System.out.println("Item : " + itemToWrite.toString() + " created");
-
-						for (int i : responsibleNodesForWrite){
-							ActorRef a = nodes.get(i);
-							a.tell(new Message.CoordToNodeDoWrite(itemToWrite,false), getSelf());
-						}
-
-						goBackToTerminal();
-
-						//For the next request
-						pendingWriteRequest = null;
-					}*/
-					
+									
 				}
 			}
 			else if (message instanceof  Message.CoordToNodeDoWrite){
@@ -627,9 +497,13 @@ public class NodeApp {
 
 				items.put(receivedItem.getKey(),receivedItem);
 
-				updateLocalStorage(items);
+				Utilities.updateLocalStorage(myId,items);
 
-				goBackToTerminal();
+				Utilities.goBackToTerminal();
+			}
+			else if (message instanceof Message.RequestRecovery){
+				getContext().actorSelection(remotePath).tell(new Message.RequestNodelist('r'), getSelf());
+				getContext().setReceiveTimeout(Duration.create(T+"second"));
 			}
 			else if (message instanceof Message.WriteTimeout){ 	// timeout for read has been hit
 				if (pendingWriteRequest != null){
@@ -639,14 +513,14 @@ public class NodeApp {
 					pendingWriteRequest = null;
 
 					System.out.println("Write unsuccessful, Timeout has been hit");
-					goBackToTerminal();
+					Utilities.goBackToTerminal();
 
 				}
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
-				System.out.println("\nERROR: Failed to contact node "+remotePath+"\n");
-				goBackToTerminal();
+				System.out.println("ERROR: Failed to contact node "+remotePath);
+				Utilities.goBackToTerminal();
 
 			}
 			else
@@ -674,7 +548,7 @@ public class NodeApp {
 			String ip = args[0];
 			String port = args[1];
     		// The Akka path to the bootstrapping peer
-			remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
+			remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node"+myId;
 			System.out.println("Starting node " + myId + "; bootstrapping node: " + ip + ":"+ port);
 		}
 		else 
@@ -686,7 +560,7 @@ public class NodeApp {
 		// Create a single node actor
 		receiver = system.actorOf(
 				Props.create(Node.class),	// actor class 
-				"node"						// actor name
+				"node"					// actor name
 				);
 
 		// Load parameters from parameters configuration file
