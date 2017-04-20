@@ -81,6 +81,9 @@ runNode2:
 runNode3:
 	@cd $(PATHTONODE)/3 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 
+runNode5:
+	@cd $(PATHTONODE)/5 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
+
 runNode7:
 	@cd $(PATHTONODE)/7 && $(JVM) -cp $(AKKA_CLASSPATH):.:$(PATHNODECLASS) NodeApp
 

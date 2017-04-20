@@ -72,6 +72,9 @@ runNode2:
 runNode3:
 	@make -C $(PATHTOSRC) -s runNode3
 
+runNode5:
+	@make -C $(PATHTOSRC) -s runNode5
+
 runNode7:
 	@make -C $(PATHTOSRC) -s runNode7
 

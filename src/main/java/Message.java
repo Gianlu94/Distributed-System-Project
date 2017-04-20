@@ -215,7 +215,12 @@ public class Message {
 			super(item,isExisting);
 			this.failed = failed;
 		}
-
+		
+		public WriteReplyToClient(Integer itemKey, String value, boolean isExisting,boolean failed) {
+			super(itemKey,value);
+			this.failed = failed;
+			this.isExisting = isExisting;
+		}
 	}
 
 	public static class CoordToNodeDoWrite extends MessageWrite{

@@ -37,14 +37,9 @@ public class NodeApp {
 			tokensInput = inputCommand.split(" ");
 
 			firstCommand = tokensInput[0].toLowerCase();
-			if (firstCommand.equals("e")) {
-				System.exit(0); // for us remember to remove it
-			}
-			else if (firstCommand.equals("crash")){
+			if (firstCommand.equals("crash")){
 				crashed = true; //crashed state setted
-			}
-
-			if ((tokensInput.length != 5) && (tokensInput.length != 1)){
+			} else if ((tokensInput.length != 5) && (tokensInput.length != 1)){
 				System.err.println("ERROR: Wrong number of parameters");
 			}
 			else{
@@ -66,6 +61,8 @@ public class NodeApp {
 							break;
 					}
 
+				}else{
+					System.err.println("ERROR: unknown command");
 				}
 			}
 		}
@@ -86,7 +83,8 @@ public class NodeApp {
 
 
 	}
-
+	
+	// returns the node which is immediately after this node on the ring of partitioning
 	public static ActorRef identifyNextNode(Map <Integer, ActorRef> nodes){
 		ArrayList<Integer> keyArray = new ArrayList<Integer>(nodes.keySet());
 		Collections.sort(keyArray);
@@ -508,7 +506,7 @@ public class NodeApp {
 			else if (message instanceof Message.WriteTimeout){ 	// timeout for read has been hit
 				if (pendingWriteRequest != null){
 					//set null we are not interested in knowing if node is present or not
-					pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient (itemToWrite, true, true),
+					pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient (pendingWriteRequest.getItemKey(),pendingWriteRequest.getValue() , true, true),
 							getSelf());
 					pendingWriteRequest = null;
 
@@ -540,6 +538,22 @@ public class NodeApp {
 			return;
 		}
 		
+		// Load parameters from parameters configuration file
+	    File parameterFile = new File("./../../resources/parameters.conf");
+		Config parameters = ConfigFactory.parseFile(parameterFile);
+	    try {
+		    N = parameters.getInt("N.value");
+		    R = parameters.getInt("R.value");
+		    W = parameters.getInt("W.value");
+		    T = parameters.getInt("T.value");
+	    }catch(Exception ex){
+		    System.exit(0);
+	    }	    
+	    if(R + W <= N){
+	    	System.out.println("Error: the condition 'R + W > N' must hold");
+		    System.exit(0);
+	    }
+		
 		// Load the "application.conf"
 		Config config = ConfigFactory.load("application");
 		myId = config.getInt("nodeapp.id");
@@ -562,18 +576,6 @@ public class NodeApp {
 				Props.create(Node.class),	// actor class 
 				"node"					// actor name
 				);
-
-		// Load parameters from parameters configuration file
-	    File parameterFile = new File("./../../resources/parameters.conf");
-		Config parameters = ConfigFactory.parseFile(parameterFile);
-	    try {
-		    N = parameters.getInt("N.value");
-		    R = parameters.getInt("R.value");
-		    W = parameters.getInt("W.value");
-		    T = parameters.getInt("T.value");
-	    }catch(Exception ex){
-		    System.exit(0);
-	    }
 
 	    terminal();
 
