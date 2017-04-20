@@ -159,7 +159,7 @@ public class Client {
 		        }
 		        else{
 			        System.out.println("System did not manage to compute the write request for the item: " +
-					        msg.itemKey + " "+msg.value +" because Timeout was hit");
+					        msg.item.getKey() + " "+msg.item.getValue() +" because Timeout was hit");
 		        }
 
 		        //Client exits after receiving response

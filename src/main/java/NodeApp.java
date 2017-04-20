@@ -506,7 +506,7 @@ public class NodeApp {
 			else if (message instanceof Message.WriteTimeout){ 	// timeout for read has been hit
 				if (pendingWriteRequest != null){
 					//set null we are not interested in knowing if node is present or not
-					pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient (pendingWriteRequest.getItemKey(),pendingWriteRequest.getValue() , true, true),
+					pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient (itemToWrite , true, true),
 							getSelf());
 					pendingWriteRequest = null;
 
