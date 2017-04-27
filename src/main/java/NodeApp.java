@@ -320,7 +320,7 @@ public class NodeApp {
 				nodes.clear();
 				nodes.put(myId, getSelf());
 				
-				System.out.println("Node has been removed from the network");
+				System.out.println(">> Node has been removed from the network");
 				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof Message.LeavingAnnouncement){ // a node just told me that it is about to leave

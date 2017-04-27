@@ -1,2 +1,2 @@
-3 red 0
-4 white 2
+2 yellow 1
+5 green 0
