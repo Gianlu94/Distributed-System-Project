@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 /**
  * Created by gianluke on 11/04/17.
+ * Utilities class contatins different functions (e.g initialize storage file,...)
  */
 public class Utilities {
 

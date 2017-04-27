@@ -6,7 +6,7 @@ import scala.Serializable;
  * Created by gianluke on 16/03/17.
  */
 /*
-		This is the class that identify an item
+		This is the class that represents an item
 */
 
 public class Item implements Serializable {

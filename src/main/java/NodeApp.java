@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class NodeApp {
 	static private String remotePath = null; // Akka path of the bootstrapping peer
 	static private int myId; // ID of the local node
-	static int N, R, W, T; // parameters replication number, read quorum, write quorum and timeout
+	static int N, R, W, T; // parameters: replication number, read quorum, write quorum and timeout
 	static private ActorRef receiver;
 	static private Boolean crashed;
 
@@ -21,7 +21,7 @@ public class NodeApp {
 
 	/*
 		  Terminal to receive node commands
-	   */
+	*/
 	private static void terminal(){
 		Scanner input; //to receive keyboard input stream
 		String inputCommand;
@@ -48,8 +48,7 @@ public class NodeApp {
 
 					switch (tokensInput[2].toLowerCase()){
 						case "join":
-							//System.out.println("ERROR: Not implemented yet");
-							if (crashed != true) {
+							if (crashed != true) { // if node is not crashed
 								doJoin(tokensInput[3].toLowerCase(), tokensInput[4].toLowerCase());
 							}
 							break;
@@ -68,6 +67,7 @@ public class NodeApp {
 		}
 	}
 
+	//tell to the (current) node actor to start a join
 	public static void doJoin (String ip, String port){
 
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
@@ -76,6 +76,7 @@ public class NodeApp {
 
 	}
 
+	//tell to the (current) node actor to start a recovery
 	public static void doRecovery (String ip, String port){
 
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
@@ -529,8 +530,6 @@ public class NodeApp {
     
 
 
-    //TO LAUNCH NODE APP FROM NODE CONFIGURATION FOLDER TYPE:
-	//java -cp $AKKA_CLASSPATH:.:../../../ main.java.NodeApp
 	public static void main(String[] args) {
 		
 		if (args.length != 0 && args.length !=2 ) {

@@ -2,6 +2,7 @@ import akka.actor.ActorRef;
 
 /**
  * Created by gianluke on 22/03/17.
+ * Class extends PendingOperation. It is related to read.
  */
 
 public class PendingRead extends PendingOperation {

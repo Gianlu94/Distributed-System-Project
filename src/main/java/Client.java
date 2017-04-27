@@ -63,7 +63,7 @@ public class Client {
 								try{
 									keyItem = Integer.valueOf(tokensInput[5]);
 								}catch(Exception e){
-									System.out.println("ERROR: Key not correct"); //TODO:we can define an utility functtion to check it
+									System.out.println("ERROR: Key not correct");
 									break;
 								}
 								sendWrite(tokensInput[2],tokensInput[3],keyItem,tokensInput[6]);
@@ -92,19 +92,22 @@ public class Client {
 		}
 	}
 
+
+	//tell to the client actor to do a leave
     public static void sendLeave (String ip, String port){
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
 		clientActor.tell(new Message.DoLeave(), null);
 	}
 
 
+	//tell to the (current) client actor to start a read
     public static void sendRead (String ip, String port, Integer itemKey){
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
 		clientActor.tell(new Message.DoRead(itemKey), null);
 
 	}
 
-	//tell to the client to send a write request
+	//tell to the (current) client actor to start a write
 	public static void sendWrite (String ip, String port, Integer itemKey, String value){
 		remotePath = "akka.tcp://mysystem@"+ip+":"+port+"/user/node";
 		clientActor.tell(new Message.DoWrite(itemKey,value), null);
@@ -129,7 +132,7 @@ public class Client {
 		        Message.DoWrite msg = (Message.DoWrite) message;
 		        getContext().actorSelection(remotePath).tell(new Message.ClientToCoordWriteRequest(msg.itemKey,msg.value),getSelf());
 	        }
-        	else if(message instanceof Message.ReadReplyToClient){
+        	else if(message instanceof Message.ReadReplyToClient){ //reesponse from the coordinator
         		Item itemRead = ((Message.ReadReplyToClient) message).item;
         		Integer itemKey = ((Message.ReadReplyToClient) message).itemKey;
         		Boolean isExisting = ((Message.ReadReplyToClient) message).isExisting;
@@ -148,7 +151,7 @@ public class Client {
         		//Client exits after receiving response
 		        System.exit(0);
         	}
-        	else if (message instanceof Message.WriteReplyToClient){
+        	else if (message instanceof Message.WriteReplyToClient){ //reesponse from the coordinator
 		        Message.WriteReplyToClient msg = (Message.WriteReplyToClient)message;
 		        if (!msg.failed) {
 			        if (msg.isExisting) {

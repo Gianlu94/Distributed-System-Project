@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class Message {
 
-	//end this msg in order to require to our remoteActor to do start a Join
+	//send this msg in order to require to our remoteActor to do start a Join
 	public static class RequestJoin implements Serializable {}
 
 	public static class Join implements Serializable {
@@ -81,6 +81,10 @@ public class Message {
 
 	}
 
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO WRITE---
+	*/
+
 	public static class MessageRead implements Serializable{
 		Integer itemKey = null;
 		Item item = null;
@@ -139,6 +143,10 @@ public class Message {
 		}
 
 	}
+
+	/*
+		----------------------------------------------------
+	*/
 
 	/*
 		---- HERE ARE DEFINED THE MSGs RELATED TO WRITE---
@@ -235,11 +243,13 @@ public class Message {
 	public static class WriteTimeout extends MessageWrite {
 		public WriteTimeout(Integer itemKey) {
 			super(itemKey);
-			//this.itemKey = itemKey;
-		}
 
-		//Integer itemKey;
+		}
 	}
+	/*
+		----------------------------------------------------
+	*/
+
 
 	/*
 		---- HERE ARE DEFINED THE MSGs RELATED TO RECOVERY---
@@ -250,6 +260,10 @@ public class Message {
 
 		}
 	}
+
+	/*
+		----------------------------------------------------
+	*/
 
 
 
