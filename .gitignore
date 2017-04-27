@@ -1,7 +1,6 @@
 *.class
 *~
 ./idea/workspace.xml
-./src/main/java/nodes/node
 /.classpath
 /.gitignore2
 /.project

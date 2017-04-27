@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6edc0da2-f5c5-41a7-81cd-93b3c3d42109" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/nodes/2/2myLocalStorage.txt" afterPath="" />
-    </list>
+    <list default="true" id="6edc0da2-f5c5-41a7-81cd-93b3c3d42109" name="Default" comment="" />
     <ignored path="Distributed-System-Project.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -859,12 +857,12 @@
       <workItem from="1492442878399" duration="467000" />
       <workItem from="1492547782642" duration="6598000" />
       <workItem from="1492774386229" duration="792000" />
-      <workItem from="1493283318170" duration="6237000" />
+      <workItem from="1493283318170" duration="6349000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="180802000" />
+    <option name="totallyTimeSpent" value="180914000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
