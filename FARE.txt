@@ -1,0 +1,4 @@
+1) \n -> blocchi
+2) operazioni da client diversi
+3) leave -> ack msg
+4) sleep per nodo lento

@@ -238,10 +238,10 @@ public class NodeApp {
 			if (message instanceof Message.RequestNodelist) {
 				typeOfRequest = ((Message.RequestNodelist) message).typeOfRequest;
 				if(typeOfRequest == 'j'){
-					System.out.println("[JOIN] Received request nodes list from node "+ getSender().toString());
+					System.out.println("[JOIN] Received request nodes list from node "+ getSender().toString() + "\n");
 				}
 				else if (typeOfRequest == 'r'){
-					System.out.println("[RECOVERY] Received request nodes list from node "+ getSender().toString());
+					System.out.println("[RECOVERY] Received request nodes list from node "+ getSender().toString() + "\n");
 				}
 				Utilities.goBackToTerminal();
 				getSender().tell(new Message.Nodelist(nodes,typeOfRequest), getSelf());
@@ -271,7 +271,7 @@ public class NodeApp {
 			}
 			else if (message instanceof Message.Join) {
 				int id = ((Message.Join)message).id;
-				System.out.println("Node " + id + " joined");
+				System.out.println("Node " + id + " joined" + "\n");
 				Utilities.goBackToTerminal();
 				nodes.put(id, getSender());
 				notResposibleItemRemove(nodes,items);
@@ -320,7 +320,7 @@ public class NodeApp {
 				nodes.clear();
 				nodes.put(myId, getSelf());
 				
-				System.out.println(">> Node has been removed from the network");
+				System.out.println(">> Node has been removed from the network" + "\n");
 				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof Message.LeavingAnnouncement){ // a node just told me that it is about to leave
@@ -354,10 +354,10 @@ public class NodeApp {
 				getSender().tell(new Message.ReadReplyToCoord(item), getSelf());
 				
 				if (item != null){
-					System.out.println("Read sent to Coordinator with value: " + item.toString());
+					System.out.println("Read sent to Coordinator with value: " + item.toString() + "\n");
 					Utilities.goBackToTerminal();
 				} else {
-					System.out.println("Item to be read " + itemKey + " does not exist");
+					System.out.println("Item to be read " + itemKey + " does not exist\n");
 					Utilities.goBackToTerminal();
 				}
 			}
@@ -376,10 +376,10 @@ public class NodeApp {
 
 
 						if (pendingReadRequest.getItem() != null){
-							System.out.println("Read serviced to Client with value: " + itemRead.toString());
+							System.out.println("Read serviced to Client with value: " + itemRead.toString() + "\n");
 							Utilities.goBackToTerminal();
 						} else {
-							System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist");
+							System.out.println("Read unsuccessful, item: " + pendingReadRequest.getItemKey() + " does not exist" + "\n");
 							Utilities.goBackToTerminal();
 						}
 						
@@ -393,7 +393,7 @@ public class NodeApp {
 					pendingReadRequest.getClient().tell(new Message.ReadReplyToClient (pendingReadRequest.getItemKey(), true), getSelf());
 					pendingReadRequest = null;
 					
-					System.out.println("Read unsuccessful, Timeout has been hit");
+					System.out.println("Read unsuccessful, Timeout has been hit" + "\n");
 					Utilities.goBackToTerminal();
 
 				}
@@ -403,7 +403,7 @@ public class NodeApp {
 
 				if (nodes.size() < N){
 					getSender().tell(new Message.rejectWrite(N), getSelf());
-					System.out.println("Write operation rejected: less than "+N);
+					System.out.println("Write operation rejected: less than "+N+"\n");
 				}
 				else {
 					Integer itemKey = msgReqWriteCord.itemKey;
@@ -454,7 +454,7 @@ public class NodeApp {
 
 
 
-							System.out.println("Item : " + itemToWrite.toString() + " updated");
+							System.out.println("Item : " + itemToWrite.toString() + " updated" + "\n");
 							for (int i : responsibleNodesForWrite){
 								ActorRef a = nodes.get(i);
 								a.tell(new Message.CoordToNodeDoWrite(itemToWrite,true), getSelf());
@@ -465,7 +465,7 @@ public class NodeApp {
 						}else{
 							pendingWriteRequest.getClient().tell(new Message.WriteReplyToClient(itemToWrite, false, false),
 									getSelf());
-							System.out.println("Item : " + itemToWrite.toString() + " created");
+							System.out.println("Item : " + itemToWrite.toString() + " created" + "\n");
 
 							for (int i : responsibleNodesForWrite){
 								ActorRef a = nodes.get(i);
@@ -488,10 +488,10 @@ public class NodeApp {
 
 				if (msg.isExisting){
 					items.remove(receivedItem.getKey());
-					System.out.println("Updating completed -> Item "+receivedItem.toString());
+					System.out.println("Updating completed -> Item "+receivedItem.toString()+ "\n");
 				}
 				else{
-					System.out.println("Creation completed -> Item "+receivedItem.toString());
+					System.out.println("Creation completed -> Item "+receivedItem.toString() + "\n");
 				}
 
 				items.put(receivedItem.getKey(),receivedItem);
@@ -511,14 +511,14 @@ public class NodeApp {
 							getSelf());
 					pendingWriteRequest = null;
 
-					System.out.println("Write unsuccessful, Timeout has been hit");
+					System.out.println("Write unsuccessful, Timeout has been hit" + "\n");
 					Utilities.goBackToTerminal();
 
 				}
 			}
 			else if (message instanceof ReceiveTimeout){
 				getContext().setReceiveTimeout(Duration.Undefined());
-				System.out.println("ERROR: Failed to contact node "+remotePath);
+				System.out.println("ERROR: Failed to contact node "+remotePath + "\n");
 				Utilities.goBackToTerminal();
 
 			}
@@ -565,7 +565,7 @@ public class NodeApp {
 			System.out.println("Starting node " + myId + "; bootstrapping node: " + ip + ":"+ port);
 		}
 		else 
-			System.out.println("Starting disconnected node " + myId);
+			System.out.println("Starting disconnected node " + myId + "\n");
 		
 		// Create the actor system
 		final ActorSystem system = ActorSystem.create("mysystem", config);

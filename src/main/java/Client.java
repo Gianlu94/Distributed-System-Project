@@ -192,6 +192,7 @@ public class Client {
 	    clientActor = system.actorOf(Props.create(Node.class),"client");
 
 	    //call client terminal
+	    System.out.print("\n");
 	    terminal();
 		
     }
