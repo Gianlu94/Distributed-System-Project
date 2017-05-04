@@ -124,6 +124,18 @@ public class Client {
         	if(message instanceof Message.DoLeave){
         		getContext().actorSelection(remotePath).tell(new Message.Leave(), getSelf());
         	}
+        	else if (message instanceof  Message.AckLeave){
+		        Message.AckLeave msg = (Message.AckLeave) message;
+
+		        if (msg.successful) {
+			        System.out.println("Node " + msg.keyNode + " has left the network\n");
+		        }
+		        else{
+			        System.out.println("Node "+ msg.keyNode +" has not left the network : it is the only one node in " +
+					        "the network\n");
+		        }
+		        System.exit(0);
+	        }
         	else if(message instanceof Message.DoRead){
         		getContext().actorSelection(remotePath).tell(new Message.ClientToCoordReadRequest(
         				((Message.DoRead) message).itemKey), getSelf());

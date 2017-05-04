@@ -140,8 +140,8 @@ public class NodeApp {
 		ArrayList<Integer> keyItems = new ArrayList<Integer>(items.keySet());
 
 		for (Integer keyItem:keyItems){
-			List <Integer> nodesCompetent = getResponsibleNodes(nodes, keyItem);			
-			
+			List <Integer> nodesCompetent = getResponsibleNodes(nodes, keyItem);
+
 			int responsibleNode = nodesCompetent.get(nodesCompetent.size()-1);
 			List <Item> listOfResponsibleNode = newResponsibleNodes.get(responsibleNode);
 			if (listOfResponsibleNode == null){
@@ -306,26 +306,36 @@ public class NodeApp {
 						n.tell(new Message.LeavingAnnouncement(myId), getSelf());
 					}
 				}
-				
-				nodes.remove(myId);
-				Map <Integer, List<Item>> newResponsibleNodes;
-				newResponsibleNodes = getNewResponsibleNodes(nodes, items);
-				
-				for (int i : newResponsibleNodes.keySet()){
-					ActorRef toBeNotified = nodes.get(i);
-					toBeNotified.tell(new Message.UpdateAfterLeaving(newResponsibleNodes.get(i)), getSelf());
+
+				if (nodes.size() == 1){
+					System.out.println(">> Forbidden: Only myself in the network" + "\n");
+					getSender().tell(new Message.AckLeave(myId, false), null);
 				}
-				
-				// re-initializing the list of nodes after leaving the network, for a possible future join
-				nodes.clear();
-				nodes.put(myId, getSelf());
-				
-				System.out.println(">> Node has been removed from the network" + "\n");
+				else {
+					nodes.remove(myId);
+					Map<Integer, List<Item>> newResponsibleNodes;
+					newResponsibleNodes = getNewResponsibleNodes(nodes, items);
+
+					for (int i : newResponsibleNodes.keySet()) {
+						ActorRef toBeNotified = nodes.get(i);
+						toBeNotified.tell(new Message.UpdateAfterLeaving(newResponsibleNodes.get(i)), getSelf());
+					}
+
+					// re-initializing the list of nodes after leaving the network, for a possible future join
+					nodes.clear();
+					nodes.put(myId, getSelf());
+
+					System.out.println(">> Node has been removed from the network" + "\n");
+
+
+					//send ack to the client
+					getSender().tell((new Message.AckLeave(myId,true)), null);
+				}
 				Utilities.goBackToTerminal();
 			}
 			else if (message instanceof Message.LeavingAnnouncement){ // a node just told me that it is about to leave
 				nodes.remove(((Message.LeavingAnnouncement)message).getId());
-				System.out.println("Node " + ((Message.LeavingAnnouncement)message).getId() + " left");
+				System.out.println("Node " + ((Message.LeavingAnnouncement)message).getId() + " left\n");
 				Utilities.goBackToTerminal();
 
 			}

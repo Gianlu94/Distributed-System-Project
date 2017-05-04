@@ -2,3 +2,7 @@
 4 black 1
 5 green 0
 10 purple 1
+2 yellow 1
+4 black 1
+5 green 0
+10 purple 1

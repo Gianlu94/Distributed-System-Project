@@ -13,6 +13,10 @@ import java.util.Map;
  */
 public class Message {
 
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO JOIN---
+	*/
+
 	//send this msg in order to require to our remoteActor to do start a Join
 	public static class RequestJoin implements Serializable {}
 
@@ -22,55 +26,44 @@ public class Message {
 			this.id = id;
 		}
 	}
-	//send this msg in order to ask for the list of items one actor is responsible for
-	public static class RequestItems implements Serializable {}
 
-	//msg containing the list of items that sender requested
-	public static class ItemsList implements Serializable{
-		private Map<Integer, Item> items;
+	/*
+		----------------------------------------------------
+	*/
 
-		public ItemsList(Map<Integer,Item> items){
-			this.items = items;
-		}
 
-		public Map<Integer, Item>getItemsList(){
-			return items;
-		}
-	}
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO LEAVE---
+	*/
 
-	//reply to RequestNodeList from the sender
-	public static class Nodelist implements Serializable {
-		private Map<Integer, ActorRef> nodes;
-		private char typeOfRequest;
-		public Nodelist(Map<Integer, ActorRef> nodes, char typeOfRequest) {
-			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes));
-			this.typeOfRequest = typeOfRequest;
-		}
-
-		public Map<Integer, ActorRef> getNodeList(){
-			return this.nodes;
-		}
-
-		public char getTypeOfRequest(){
-			return this.typeOfRequest;
-		}
-	}
-
-	public static class RequestNodelist implements Serializable {
-		char typeOfRequest;
-
-		public RequestNodelist (char typeOfRequest){
-			this.typeOfRequest = typeOfRequest;
-		}
-	}
-
-	//message sent to current client to start leaving operation
+	//message sent from the terminal to the  current client to start leaving operation
 	public static class DoLeave implements Serializable {}
 
 	//message sent by the client to node
 	public static class Leave implements Serializable {}
 
-	//message sent by the client to node
+	//ack message sent by the leaving node to the client
+	public static class AckLeave implements Serializable{
+		Integer keyNode;
+		boolean successful;
+
+		public AckLeave (Integer keyNode, boolean successful){
+			this.keyNode = keyNode;
+			this.successful = successful;
+		}
+	}
+
+	/*
+		----------------------------------------------------
+	*/
+
+
+
+	/*
+		---- HERE ARE DEFINED THE MSGs RELATED TO READ---
+	*/
+
+	//message sent from terminal to the current client to start reading operation
 	public static class DoRead implements Serializable {
 		Integer itemKey;
 
@@ -80,10 +73,6 @@ public class Message {
 		}
 
 	}
-
-	/*
-		---- HERE ARE DEFINED THE MSGs RELATED TO WRITE---
-	*/
 
 	public static class MessageRead implements Serializable{
 		Integer itemKey = null;
@@ -246,6 +235,7 @@ public class Message {
 
 		}
 	}
+
 	/*
 		----------------------------------------------------
 	*/
@@ -266,6 +256,10 @@ public class Message {
 	*/
 
 
+
+	/*
+		---- HERE ARE DEFINED COMMON MSGs (more than operation)---
+	*/
 
 	//send this msg in order to tell the other nodes that the node is leaving
 	public static class LeavingAnnouncement implements Serializable {
@@ -291,5 +285,51 @@ public class Message {
 			return this.itemList;
 		}
 	}
+
+	//send this msg in order to ask for the list of items one actor is responsible for
+	public static class RequestItems implements Serializable {}
+
+	//msg containing the list of items that sender requested
+	public static class ItemsList implements Serializable{
+		private Map<Integer, Item> items;
+
+		public ItemsList(Map<Integer,Item> items){
+			this.items = items;
+		}
+
+		public Map<Integer, Item>getItemsList(){
+			return items;
+		}
+	}
+
+	//reply to RequestNodeList from the sender
+	public static class Nodelist implements Serializable {
+		private Map<Integer, ActorRef> nodes;
+		private char typeOfRequest;
+		public Nodelist(Map<Integer, ActorRef> nodes, char typeOfRequest) {
+			this.nodes = Collections.unmodifiableMap(new HashMap<Integer, ActorRef>(nodes));
+			this.typeOfRequest = typeOfRequest;
+		}
+
+		public Map<Integer, ActorRef> getNodeList(){
+			return this.nodes;
+		}
+
+		public char getTypeOfRequest(){
+			return this.typeOfRequest;
+		}
+	}
+
+	public static class RequestNodelist implements Serializable {
+		char typeOfRequest;
+
+		public RequestNodelist (char typeOfRequest){
+			this.typeOfRequest = typeOfRequest;
+		}
+	}
+
+	/*
+		----------------------------------------------------
+	*/
 
 }
