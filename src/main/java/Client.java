@@ -66,7 +66,12 @@ public class Client {
 									System.out.println("ERROR: Key not correct");
 									break;
 								}
-								sendWrite(tokensInput[2],tokensInput[3],keyItem,tokensInput[6]);
+								
+								if (keyItem >= 0){
+									sendWrite(tokensInput[2],tokensInput[3],keyItem,tokensInput[6]);
+								} else {
+									System.out.println("ERROR: Key must be a positive integer");
+								}
 								break;
 							case "leave":
 								sendLeave(tokensInput[2],tokensInput[3]);
